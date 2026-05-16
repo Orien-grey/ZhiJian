@@ -4,8 +4,8 @@ JSON文件处理器
 import json
 from pathlib import Path
 from typing import List, Union, Dict, Any
-from src.models import NOTAMRecord, ProcessingBatch
-from src.utils import get_logger
+from notam.src.models import NOTAMRecord, ProcessingBatch
+from notam.src.utils import get_logger
 
 class JSONHandler:
     """JSON文件处理器"""

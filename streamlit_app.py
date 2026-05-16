@@ -8,13 +8,13 @@ import streamlit as st
 from pathlib import Path
 from dotenv import load_dotenv
 
-from src.api_manager import create_api_manager
-from config import prompts as prompt_module
+from notam.src.api_manager import create_api_manager
+from notam.config import prompts as prompt_module
 
 # ---------------------- Utility Functions ---------------------- #
 @st.cache_resource(show_spinner=False)
 def load_config():
-    cfg_path = Path('config.yaml')
+    cfg_path = Path('notam/config.yaml')
     if cfg_path.exists():
         with open(cfg_path, 'r', encoding='utf-8') as f:
             return yaml.safe_load(f)

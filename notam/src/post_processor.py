@@ -14,7 +14,7 @@ from api_manager import create_api_manager
 from utils import get_logger, print_evaluation_report
 from handler.json_handler import JSONHandler
 from models import ProcessingBatch
-from config.prompts import AREA_POST_PROCESSING_ENHANCED_PROMPT_EN
+from notam.config.prompts import AREA_POST_PROCESSING_ENHANCED_PROMPT_EN
 
 logger = get_logger('post_processor')
 

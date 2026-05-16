@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Add config path
 sys.path.append(str(Path(__file__).parent.parent / "config"))
-from config.prompts import get_agent_prompt
+from notam.config.prompts import get_agent_prompt
 
 logger = logging.getLogger(__name__)
 

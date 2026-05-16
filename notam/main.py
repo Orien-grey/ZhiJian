@@ -19,11 +19,11 @@ except ImportError:
     print("⚠️  Warning: 'poml' module not found. POML mode will be disabled.")
 
 # Import project modules
-from src.api_manager import create_api_manager
-from src.utils import get_logger, print_evaluation_report
-from src.handler.json_handler import JSONHandler
-from src.models import ProcessingBatch
-from config.prompts import *
+from notam.src.api_manager import create_api_manager
+from notam.src.utils import get_logger, print_evaluation_report
+from notam.src.handler.json_handler import JSONHandler
+from notam.src.models import ProcessingBatch
+from notam.config.prompts import *
 
 logger = get_logger('main')
 

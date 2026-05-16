@@ -8,8 +8,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 from dataclasses import dataclass
 from enum import Enum
-from src.utils import get_logger
-from src.utils import extract_json_from_text
+from notam.src.utils import get_logger
+from notam.src.utils import extract_json_from_text
 import poml  # 在全局导入poml
 
 # Use a new logger
@@ -292,7 +292,7 @@ class APIManager:
         self.logger.info(f"Registered API client: {name} (default: {is_default})")
     
     def setup_clients(self, config: Dict[str, Any]):
-        """Set up clients from configuration"""
+        """Set up clients from notam.configuration"""
         self.logger.info(f"Starting to set up API clients, number of configurations: {len(config)}")
         
         for provider, provider_config in config.items():

@@ -1,287 +1,100 @@
-# NOTAM Parsing System
+# NOTAM 解析系统
 
-Official Repository for Our Paper
+## 重构架构图（仅本次重构）
 
-## Project Structure
+```text
+重构后目录结构（仅本次重构）
 
+├── apps
+│   ├── backend                     # 后端 FastAPI 服务
+│   │   ├── app
+│   │   │   ├── api                  # API 路由注册与版本入口
+│   │   │   │   └── routes           # 具体业务接口（auth/notam/dashboard/tasks……）
+│   │   │   ├── core                 # 配置/日志/错误/安全/限流
+│   │   │   ├── db                   # SQLModel 数据模型与会话
+│   │   │   ├── schemas              # Pydantic 请求/响应模型
+│   │   │   ├── services             # 业务服务层（解析/审计等）
+│   │   │   └── scripts              # 种子数据/初始化脚本
+│   │   ├── pyproject.toml           # 后端依赖（uv）
+│   │   └── requirements.txt         # 运行依赖清单
+│   └── frontend                     # 前端 Vue3 应用
+│       ├── src
+│       │   ├── assets               # 全局样式/静态资源
+│       │   ├── services             # API 封装（auth/notam/...）
+│       │   ├── stores               # Pinia 状态管理
+│       │   ├── views                # 页面（登录/首页/占位模块）
+│       │   └── router               # 路由配置
+│       ├── package.json             # 前端依赖
+│       └── vite.config.ts           # Vite 构建配置
+├── infra
+│   └── docker-compose.yml           # 一键启动前后端 + DB + Redis
+├── docs
+│   └── demos                        # 演示脚本（登录/解析/看板）
+└── .env.example                     # 环境变量模板
 ```
-├── config/                 # Configuration files
-│   ├── prompts.py         # Traditional prompt definitions
-│   └── settings.py        # System settings
-├── src/                   # Source code
-│   ├── agents.py         # Intelligent agents
-│   ├── api_manager.py    # API manager
-│   ├── debate.py         # Debate mechanism
-│   ├── mining.py         # Data mining
-│   ├── models.py         # Data models
-│   ├── post_processor.py # Post processor
-│   └── utils.py          # Utility functions
-├── config.yaml           # Main configuration file
-├── main.py               # Main program entry
-└── requirements.txt      # Dependencies list
-```
 
-## Environment Setup
+## 整体架构说明
 
-### Installing Dependencies with uv
+当前仓库包含两层：
 
-We recommend using [uv](https://github.com/astral-sh/uv) to manage Python dependencies:
+1) **研究解析流水线（保留）**  
+   - CLI 解析流程与 Streamlit 演示。  
+   - 核心文件：`main.py`, `streamlit_app.py`, `src/`, `config/`。
+
+2) **产品 MVP 平台（新增）**  
+   - **后端**：FastAPI + SQLModel + JWT + RBAC + 审计日志  
+     - 入口：`apps/backend/app/main.py`  
+     - 核心：`apps/backend/app/core`（配置/日志/错误/安全）  
+     - 数据模型：`apps/backend/app/db/models.py`  
+     - API 路由：`apps/backend/app/api/routes/*`  
+   - **前端**：Vue3 + Vite + TypeScript + Pinia + Router + Naive UI  
+     - 入口：`apps/frontend/src/main.ts`  
+     - 页面：`apps/frontend/src/views/*`（登录 + 首页 + 占位模块）  
+   - **基础设施**：Docker Compose 本地一键运行  
+     - `infra/docker-compose.yml`
+
+## MVP 重构（新应用结构）
+
+仓库已新增 ZhiJian-AeroNLP 平台的 MVP 骨架：
+
+- 后端：`apps/backend`（FastAPI + SQLModel + JWT + RBAC + 审计日志）
+- 前端：`apps/frontend`（Vue3 + Vite + TypeScript + Pinia + Naive UI）
+- 部署：`infra/docker-compose.yml`
+- 文档：`docs/ARCHITECTURE.md` 与 `docs/demos/*`
+
+### 快速启动
 
 ```bash
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+#vscode
+Ctrl+shift+P -> Task: Run Task -> dev:all:with-deps
+# 用其他编译器的需要自己配置一下
+```
 
-# Create virtual environment and install dependencies
+- 后端: http://localhost:8000/docs
+- 前端: http://localhost:5173
+
+### 本地开发
+
+```bash
+# 后端
+cd apps/backend
 uv venv
-source .venv/bin/activate  # Linux/macOS
-# or .venv\Scripts\activate  # Windows
+uv sync
+uv run uvicorn app.main:app --reload --port 8000
 
-# Install project dependencies
-uv pip install -r requirements.txt
+# 前端
+cd apps/frontend
+npm install
+npm run dev
 ```
 
-### Environment Variables Configuration
-
-Create a `.env` file to configure API keys:
+### 演示脚本
 
 ```bash
-# DMX API
-DMXAPI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# Other API keys...
+pwsh docs/demos/01_auth_and_parse.ps1
+pwsh docs/demos/02_dashboard.ps1
+pwsh docs/demos/03_tasks.ps1
 ```
 
-## Usage
-
-### For Web Demo
-
-```
-uv run streamlit run streamlit_app.py
-```
-
-### Basic Command Format
-
-```bash
-uv run main.py <input_file> <output_file> --prompt <prompt> [options]
-```
-
-### Example Commands
-
-#### 1. Airport Data Processing
-```bash
-uv run main.py data/output/airport.json data/output/airport_icl_gpt-4.1-nano.json \
-  --prompt AIRPORT_PROMPT_ICL \
-  --provider dmxapi \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model gpt-4.1-nano \
-  --base-url https://www.dmxapi.com/v1 \
-  --evaluate
-```
-
-#### 2. Runway Data Processing (with Self-consistency)
-```bash
-uv run main.py data/output/runway.json data/output/runway_processed.json \
-  --prompt RUNWAY_PROMPT_ICL \
-  --provider deepseek \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model deepseek-chat \
-  --self-consistency \
-  --consistency-rounds 5 \
-  --consistency-strategy majority_vote \
-  --evaluate
-```
-
-#### 3. Light Data Processing (with Different Temperature)
-```bash
-uv run main.py data/output/light.json data/output/light_processed.json \
-  --prompt LIGHT_PROMPT_A_COT \
-  --provider qwen \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model qwen3-8b \
-  --temperature 0.2 \
-  --evaluate
-```
-
-#### 4. Taxiway Data Processing
-```bash
-uv run main.py data/output/taxiway.json data/output/taxiway_processed.json \
-  --prompt TAXIWAY_PROMPT_ICL \
-  --provider qwen \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model qwen3-8b \
-  --evaluate
-```
-
-#### 5. Navigation Data Processing
-```bash
-uv run main.py data/output/navigation.json data/output/navigation_processed.json \
-  --prompt NAVIGATION_PROMPT_COT \
-  --provider deepseek \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model deepseek-chat \
-  --temperature 0.1 \
-  --evaluate
-```
-
-#### 6. POML Mode Processing
-```bash
-uv run main.py data/output/airport.json data/output/airport_poml_processed.json \
-  --use-poml \
-  --poml-file config/Airport.poml \
-  --provider qwen \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model qwen3-8b \
-  --evaluate
-```
-
-#### 7. POML Mode with Self-consistency
-```bash
-uv run main.py data/output/runway.json data/output/runway_poml_processed.json \
-  --use-poml \
-  --poml-file config/Airport.poml \
-  --provider deepseek \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model deepseek-chat \
-  --self-consistency \
-  --consistency-rounds 3 \
-  --consistency-strategy majority_vote \
-  --evaluate
-```
-
-### Command Line Arguments
-
-#### Required Parameters
-- `input_file`: Input JSON file path
-- `output_file`: Output JSON file path
-- `--prompt`: Prompt content or predefined prompt name (required in traditional mode)
-
-#### POML Mode Parameters
-- `--use-poml`: Enable POML (Prompt Optimization Markup Language) mode
-- `--poml-file`: Path to POML file (required when --use-poml is set)
-
-#### API Configuration Parameters
-- `--provider`: API provider (qwen/deepseek/dmxapi/openai)
-- `--api-key`: API key
-- `--model`: Model name to use
-- `--base-url`: API base URL
-- `--temperature`: Temperature parameter, controls output randomness (0.0-1.0)
-
-#### Self-consistency Parameters
-- `--self-consistency`: Enable self-consistency validation
-- `--consistency-rounds`: Number of self-consistency rounds (default: 3)
-- `--consistency-strategy`: Strategy selection
-  - `majority_vote`: Majority voting (default)
-  - `first_success`: First success
-  - `most_confident`: Highest confidence
-
-#### Other Options
-- `--evaluate`: Show evaluation report after processing
-- `--evaluate_only FILE`: Only evaluate specified file, no processing
-
-## Predefined Prompts
-
-The system provides various predefined prompts covering different data types and reasoning strategies:
-
-### Data Types
-- `AIRPORT_PROMPT_*`: Airport-related data
-- `RUNWAY_PROMPT_*`: Runway-related data
-- `LIGHT_PROMPT_*`: Light-related data
-- `TAXIWAY_PROMPT_*`: Taxiway-related data
-- `AIRWAY_PROMPT_*`: Airway-related data
-- `AREA_PROMPT_*`: Area-related data
-- `STAND_PROMPT_*`: Stand-related data
-- `NAVIGATION_PROMPT_*`: Navigation-related data
-- `PROCEDURE_PROMPT_*`: Procedure-related data
-- `STANDARD_PROMPT_*`: Standard-related data
-- `RVR_PROMPT_*`: RVR-related data
-
-### Reasoning Strategies
-- `*_Vanilla`: Basic prompts
-- `*_ICL`: In-context learning with examples
-- `*_COT`: Chain-of-thought reasoning
-- `*_POML`: POML (Prompt Optimization Markup Language) mode
-
-## Post-processing(SRCV)
-
-For further optimization and validation of parsed data:
-
-```bash
-uv run src/post_processor.py input_file.json output_file.json \
-  --provider qwen \
-  --api-key sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
-  --model qwen3-8b \
-  --evaluate
-```
-
-## Configuration Files
-
-### config.yaml
-Main configuration file containing API settings, path configurations, and processing parameters:
-
-```yaml
-api:
-  default_provider: "deepseek"
-  providers:
-    deepseek:
-      api_key: "${DEEPSEEK_API_KEY}"
-      base_url: "https://api.deepseek.com/v1"
-      model: "deepseek-chat"
-
-paths:
-  data_dir: "./data"
-  output_dir: "./data/output"
-
-processing:
-  default_sample_size: 100
-  max_workers: 4
-```
-
-## Logging and Monitoring
-
-- Log files located in `logs/` directory
-- Real-time progress display and success rate statistics
-- API call statistics and error tracking
-- Automatic evaluation report generation after processing completion
-
-## Supported Data Formats
-
-### Input Format
-```json
-{
-  "records": [
-    {
-      "raw_text": "NOTAM raw text...",
-      "category": "runway",
-      "telex": "A001/23"
-    }
-  ]
-}
-```
-
-### Output Format
-```json
-{
-  "metadata": {
-    "total_records": 100,
-    "success_count": 95,
-    "processing_time": "2023-01-01T12:00:00"
-  },
-  "records": [
-    {
-      "raw_text": "Raw text",
-      "parse_fields": {
-        "airport": "ZBAA",
-        "runway": "18L/36R",
-        "status": "closed"
-      }
-    }
-  ],
-  "api_stats": {
-    "total_requests": 100,
-    "successful_requests": 95
-  }
-}
-```
-
-
-
+原有 NOTAM 解析流程（CLI + Streamlit）仍保留在根目录下，
+可继续独立使用（`main.py`、`streamlit_app.py`）。

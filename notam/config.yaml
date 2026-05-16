@@ -14,12 +14,12 @@ api:
 
 # 路径配置
 paths:
-  base_dir: "."
-  data_dir: "./data"
-  input_dir: "./data/input"
-  output_dir: "./data/output"
-  field_templates_dir: "./data/field_templates"
-  logs_dir: "./logs"
+  base_dir: "./notam"
+  data_dir: "./notam/data"
+  input_dir: "./notam/data/input"
+  output_dir: "./notam/data/output"
+  field_templates_dir: "./notam/data/field_templates"
+  logs_dir: "./notam/logs"
 
 # 处理配置
 processing:
