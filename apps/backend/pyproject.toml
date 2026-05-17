@@ -16,7 +16,14 @@ dependencies = [
   "bcrypt<4",
   "python-multipart>=0.0.9",
   "httpx>=0.27.0",
-  "python-dotenv>=1.0.1",
+  "python-dotenv==1.1.1",
+  "openai==1.93.0",
+  "pandas==2.3.0",
+  "pyyaml==6.0.2",
+  "requests==2.32.4",
+  "poml==0.0.8",
+  "streamlit==1.38.0",
+  "scikit-learn>=1.8.0",
 ]
 
 [tool.uv]
