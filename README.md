@@ -92,6 +92,11 @@
 
 ## 快速启动
 
+### vscode task启动
+
+`Ctrl + Shift + P` -> `Tasks: Run Task` -> 选择 `更新依赖后启动` 或 `启动`
+
+
 - 后端：http://localhost:8000/docs
 - 前端：http://localhost:5173
 
