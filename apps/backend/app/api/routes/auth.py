@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
-from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -101,13 +100,16 @@ def refresh(payload: RefreshRequest, session: Session = Depends(get_session)) ->
 @router.post("/logout")
 def logout(
     payload: RefreshRequest,
-    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
     record = session.exec(select(RefreshToken).where(RefreshToken.token == payload.refresh_token)).first()
-    if record:
+    if record and not record.revoked:
         record.revoked = True
         session.add(record)
         session.commit()
-    log_action(session, "logout", f"User {current_user.email} logged out", current_user.id)
+
+        user = session.exec(select(User).where(User.id == record.user_id)).first()
+        if user:
+            log_action(session, "logout", f"User {user.email} logged out", user.id)
+
     return {"message": "logged out"}
