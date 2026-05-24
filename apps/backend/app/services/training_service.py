@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from app.services.training.diagnosis_service import diagnose_answer
 from app.services.training.grading_service import grade_answer
 from app.services.training.profile_service import (
     get_answered_case_ids,
@@ -25,6 +26,14 @@ DEFAULT_TRAINING_USER = "demo_user"
 
 
 class TrainingService:
+    @staticmethod
+    def _diagnosis_items(record: dict[str, Any]) -> list[dict[str, Any]]:
+        diagnosis_result = record.get("diagnosis_result", {})
+        if not isinstance(diagnosis_result, dict):
+            return []
+        diagnosis_items = diagnosis_result.get("diagnosis_items", [])
+        return diagnosis_items if isinstance(diagnosis_items, list) else []
+
     def _load_cases(self) -> list[dict[str, Any]]:
         with CASES_PATH.open("r", encoding="utf-8") as file:
             cases = json.load(file)
@@ -198,7 +207,8 @@ class TrainingService:
         case_index = self._case_index()
         mistake_records: list[dict[str, Any]] = []
         for record in get_latest_records_by_case(user_id):
-            if int(record.get("score", 0)) >= 100 and not record.get("errors"):
+            diagnosis_items = self._diagnosis_items(record)
+            if int(record.get("score", 0)) >= 100 and not diagnosis_items:
                 continue
             enriched = dict(record)
             enriched["case"] = case_index.get(record.get("case_id"))
@@ -216,14 +226,19 @@ class TrainingService:
         gold_answer = self._get_gold_answer(case_id)
         grading_result = grade_answer(student_answer_units, gold_answer.get("gold_answer_units", []))
         grading_result["case_id"] = case_id
+        diagnosis_result = diagnose_answer(
+            case=case,
+            student_answer_units=student_answer_units,
+            gold_answer_units=gold_answer.get("gold_answer_units", []),
+        )
 
         record = {
             "record_id": str(uuid.uuid4()),
             "case_id": case_id,
             "student_answer_units": student_answer_units,
             "grading_result": grading_result,
+            "diagnosis_result": diagnosis_result,
             "score": grading_result["total_score"],
-            "errors": grading_result.get("errors", []),
             "created_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         }
         upsert_user_record(user_id, record)
@@ -236,6 +251,7 @@ class TrainingService:
         return {
             "case": case,
             "grading_result": grading_result,
+            "diagnosis_result": diagnosis_result,
             "record": record,
             "progress": progress,
             "profile": profile,

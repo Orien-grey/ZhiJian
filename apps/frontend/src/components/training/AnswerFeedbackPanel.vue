@@ -26,7 +26,7 @@
         </div>
         <div class="summary-card">
           <span>错误数</span>
-          <strong>{{ result.summary?.error_count ?? result.errors.length }}</strong>
+          <strong>{{ result.summary?.error_count ?? 0 }}</strong>
         </div>
         <div class="summary-card">
           <span>涉及能力</span>
@@ -35,7 +35,7 @@
       </section>
 
       <section class="section-block">
-        <div class="section-title">字段级批改</div>
+        <div class="section-title">字段匹配</div>
         <div class="table-wrap">
           <table class="result-table">
             <thead>
@@ -48,13 +48,13 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="unit in result.unit_results" :key="unit.unit_id">
+              <template v-for="unit in fieldMatchRows" :key="unit.unit_id">
                 <tr v-for="fieldResult in unit.field_results" :key="`${unit.unit_id}-${fieldResult.field}`">
                   <td>{{ fieldResult.field }}</td>
                   <td>{{ formatCell(fieldResult.student_value) }}</td>
                   <td>{{ formatCell(fieldResult.gold_value) }}</td>
                   <td>{{ fieldResult.score }}</td>
-                  <td>{{ fieldResult.message || (fieldResult.is_correct ? "正确" : "待修正") }}</td>
+                  <td>{{ formatFieldIssue(fieldResult) }}</td>
                 </tr>
               </template>
             </tbody>
@@ -64,35 +64,62 @@
 
       <section class="section-block">
         <div class="section-title">错误诊断</div>
-        <div v-if="!result.errors.length" class="success-box">本题没有识别到错误。</div>
-        <div v-else class="error-list">
-          <div v-for="(error, index) in result.errors" :key="`${error.field}-${index}`" class="error-card">
-            <div class="error-top">
-              <strong>{{ error.error_type }}</strong>
-              <span>{{ error.field }}</span>
-            </div>
-            <p>{{ error.message }}</p>
-            <n-tag v-if="error.ability" size="small" type="warning">{{ error.ability }}</n-tag>
-          </div>
-        </div>
-      </section>
+        <template v-if="diagnosisResult">
+          <div class="diagnosis-summary">{{ diagnosisResult.summary }}</div>
 
-      <section class="section-block">
-        <div class="section-title">反馈与建议</div>
-        <div class="advice-grid">
-          <div class="advice-card">
-            <span class="advice-label">反馈</span>
-            <ul>
-              <li v-for="item in result.feedback" :key="item">{{ item }}</li>
-            </ul>
+          <div v-if="!diagnosisItems.length" class="success-box">本题没有识别到独立错因。</div>
+          <div v-else class="error-list">
+            <div
+              v-for="(item, index) in diagnosisItems"
+              :key="`${item.field}-${item.diagnosis_type}-${index}`"
+              class="error-card"
+            >
+              <div class="error-top">
+                <strong>{{ item.diagnosis_type }}</strong>
+                <span>{{ item.field }}</span>
+              </div>
+              <p>{{ item.message }}</p>
+              <n-tag v-if="item.ability" size="small" type="warning">{{ item.ability }}</n-tag>
+            </div>
           </div>
-          <div class="advice-card">
-            <span class="advice-label">建议</span>
-            <ul>
-              <li v-for="item in result.suggestions" :key="item">{{ item }}</li>
-            </ul>
+
+          <div class="diagnosis-meta">
+            <div class="advice-card">
+              <span class="advice-label">薄弱能力</span>
+              <div v-if="weakAbilities.length" class="tag-list">
+                <n-tag v-for="ability in weakAbilities" :key="ability" size="small" type="warning">
+                  {{ ability }}
+                </n-tag>
+              </div>
+              <p v-else>暂无明显薄弱能力。</p>
+            </div>
+
+            <div class="advice-card">
+              <span class="advice-label">学习建议</span>
+              <ul v-if="diagnosisSuggestions.length">
+                <li v-for="item in diagnosisSuggestions" :key="item">{{ item }}</li>
+              </ul>
+              <p v-else>暂无额外建议。</p>
+            </div>
           </div>
-        </div>
+
+          <div v-if="showGradingAdvice" class="advice-grid">
+            <div class="advice-card">
+              <span class="advice-label">字段匹配反馈</span>
+              <ul>
+                <li v-for="item in result.feedback" :key="item">{{ item }}</li>
+              </ul>
+            </div>
+            <div class="advice-card">
+              <span class="advice-label">字段匹配建议</span>
+              <ul>
+                <li v-for="item in result.suggestions" :key="item">{{ item }}</li>
+              </ul>
+            </div>
+          </div>
+        </template>
+
+        <p v-else class="empty-tip">暂无独立错误诊断结果，请重新提交本题生成 diagnosis_result。</p>
       </section>
 
       <section v-if="showGoldAnswer && goldAnswer" class="section-block">
@@ -114,18 +141,20 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NButton, NTag } from "naive-ui";
-import type { GoldAnswer, GradingResult, TrainingCase } from "@/services/training";
+import type { DiagnosisResult, GoldAnswer, GradingResult, TrainingCase } from "@/services/training";
 
 const props = withDefaults(
   defineProps<{
     mode: "practice" | "mistake";
     result: GradingResult | null;
+    diagnosisResult?: DiagnosisResult | null;
     caseItem?: TrainingCase | null;
     showActions?: boolean;
     goldAnswer?: GoldAnswer | null;
     showGoldAnswer?: boolean;
   }>(),
   {
+    diagnosisResult: null,
     caseItem: null,
     showActions: false,
     goldAnswer: null,
@@ -153,6 +182,30 @@ const relatedAbilitiesText = computed(() => {
   return abilities.length ? abilities.join("、") : "无";
 });
 
+/**
+ * 字段匹配区：
+ * 只使用 grading_result。
+ * 这里展示字段级得分、匹配状态、标准值、学生值。
+ * 不在这里做错因解释。
+ */
+const fieldMatchRows = computed(() => {
+  return props.result?.unit_results ?? [];
+});
+
+/**
+ * 错因分析区：
+ * 只使用 diagnosis_result。
+ * 这里展示 diagnosis_service.py 输出的诊断摘要、错因标签、薄弱能力和建议。
+ * 不读取 grading_result 内的旧错误字段，避免把“字段匹配”和“错因分析”混在一起。
+ */
+const diagnosisItems = computed(() => {
+  return props.diagnosisResult?.diagnosis_items ?? [];
+});
+
+const weakAbilities = computed(() => props.diagnosisResult?.weak_abilities ?? []);
+const diagnosisSuggestions = computed(() => props.diagnosisResult?.suggestions ?? []);
+const showGradingAdvice = computed(() => Boolean(props.result?.feedback.length || props.result?.suggestions.length));
+
 const scoreTagType = computed(() => {
   const score = props.result?.total_score || 0;
   if (score >= 95) return "success";
@@ -169,6 +222,16 @@ const formatCell = (value: unknown) => {
     return JSON.stringify(value);
   }
   return String(value);
+};
+
+const formatFieldIssue = (fieldResult: GradingResult["unit_results"][number]["field_results"][number]) => {
+  if (fieldResult.is_correct) {
+    return "正确";
+  }
+  if (fieldResult.error_type && fieldResult.message) {
+    return `${fieldResult.error_type} · ${fieldResult.message}`;
+  }
+  return fieldResult.message || fieldResult.error_type || "待修正";
 };
 
 const goldAnswerText = computed(() => JSON.stringify(props.goldAnswer?.gold_answer_original ?? {}, null, 2));
@@ -198,7 +261,8 @@ const goldAnswerText = computed(() => JSON.stringify(props.goldAnswer?.gold_answ
   font-size: 13px;
 }
 
-.empty-state {
+.empty-state,
+.empty-tip {
   border: 1px dashed #c6d6eb;
   border-radius: 16px;
   padding: 24px;
@@ -267,18 +331,41 @@ const goldAnswerText = computed(() => JSON.stringify(props.goldAnswer?.gold_answ
 }
 
 .error-card p,
-.advice-card ul {
+.advice-card ul,
+.advice-card p,
+.diagnosis-summary {
   margin: 8px 0 0;
   color: #42526b;
   line-height: 1.6;
+}
+
+.diagnosis-summary {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #e6ecf5;
+  background: #fbfdff;
 }
 
 .advice-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.diagnosis-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .advice-card ul {
   padding-left: 18px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .success-box {
@@ -305,6 +392,7 @@ const goldAnswerText = computed(() => JSON.stringify(props.goldAnswer?.gold_answ
 
 @media (max-width: 960px) {
   .summary-grid,
+  .diagnosis-meta,
   .advice-grid {
     grid-template-columns: 1fr;
   }

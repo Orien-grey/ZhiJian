@@ -79,6 +79,7 @@
           <AnswerFeedbackPanel
             mode="practice"
             :result="gradingResult"
+            :diagnosis-result="diagnosisResult"
             :case-item="currentCase"
             :show-actions="Boolean(gradingResult)"
             :gold-answer="currentGoldAnswer"
@@ -105,6 +106,7 @@
           <AnswerFeedbackPanel
             mode="mistake"
             :result="selectedMistake?.grading_result || null"
+            :diagnosis-result="selectedMistake?.diagnosis_result || null"
             :case-item="selectedMistake?.case || mistakeCaseDetail || null"
             :gold-answer="selectedMistakeGoldAnswer"
             :show-gold-answer="showMistakeGoldAnswer"
@@ -141,6 +143,7 @@ import {
   trainingAPI,
   type AbilityProfile,
   type AnswerUnit,
+  type DiagnosisResult,
   type GoldAnswer,
   type GradingResult,
   type MistakeRecord,
@@ -164,6 +167,7 @@ const progress = ref<TrainingProgress | null>(null);
 const profile = ref<AbilityProfile | null>(null);
 const mistakes = ref<MistakeRecord[]>([]);
 const gradingResult = ref<GradingResult | null>(null);
+const diagnosisResult = ref<DiagnosisResult | null>(null);
 const recommendedCases = ref<TrainingCase[]>([]);
 const selectedCaseId = ref<string | null>(null);
 const selectedMistake = ref<MistakeRecord | null>(null);
@@ -206,6 +210,7 @@ const resetPracticeCase = () => {
   currentGoldAnswer.value = null;
   selectedCaseId.value = null;
   gradingResult.value = null;
+  diagnosisResult.value = null;
   showPracticeGoldAnswer.value = false;
   practiceResetSeed.value += 1;
 };
@@ -232,6 +237,7 @@ const loadNextCase = async () => {
     currentGoldAnswer.value = payload.gold_answer;
     selectedCaseId.value = payload.case.case_id;
     gradingResult.value = null;
+    diagnosisResult.value = null;
     showPracticeGoldAnswer.value = false;
     practiceResetSeed.value += 1;
   } catch (error) {
@@ -295,6 +301,7 @@ const handleSubmit = async (studentAnswerUnits: AnswerUnit[]) => {
       student_answer_units: studentAnswerUnits,
     });
     gradingResult.value = response.data.data.grading_result;
+    diagnosisResult.value = response.data.data.diagnosis_result;
     progress.value = response.data.data.progress;
     profile.value = response.data.data.profile;
     recommendedCases.value = response.data.data.recommended_cases || [];
@@ -321,6 +328,7 @@ const goNextCase = async () => {
 
 const retryPractice = () => {
   gradingResult.value = null;
+  diagnosisResult.value = null;
   showPracticeGoldAnswer.value = false;
   practiceResetSeed.value += 1;
 };
