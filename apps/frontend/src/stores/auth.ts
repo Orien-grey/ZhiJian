@@ -20,6 +20,13 @@ export const useAuthStore = defineStore("auth", {
     user: null,
   }),
   actions: {
+    clearAuth() {
+      this.accessToken = null;
+      this.refreshToken = null;
+      this.user = null;
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    },
     async login(email: string, password: string) {
       const { data } = await authAPI.login({ email, password });
       this.accessToken = data.access_token;
@@ -30,21 +37,35 @@ export const useAuthStore = defineStore("auth", {
     async register(email: string, password: string) {
       await authAPI.register({ email, password, role: "user" });
     },
+    async refreshSession() {
+      if (!this.refreshToken) {
+        this.clearAuth();
+        return false;
+      }
+
+      try {
+        const { data } = await authAPI.refresh({
+          refresh_token: this.refreshToken,
+        });
+
+        this.accessToken = data.access_token;
+        this.refreshToken = data.refresh_token;
+        localStorage.setItem("accessToken", this.accessToken ?? "");
+        localStorage.setItem("refreshToken", this.refreshToken ?? "");
+
+        return true;
+      } catch {
+        this.clearAuth();
+        return false;
+      }
+    },
     async logout() {
       if (this.refreshToken) {
         try {
           await authAPI.logout({ refresh_token: this.refreshToken });
-        } catch (error: any) {
-          if (error?.response?.status !== 401) {
-            throw error;
-          }
-        }
+        } catch {}
       }
-      this.accessToken = null;
-      this.refreshToken = null;
-      this.user = null;
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      this.clearAuth();
     },
   },
 });

@@ -111,6 +111,11 @@ temp/
 ####################################
 # 数据 / 模型 / 中间结果
 data/
+!apps/backend/app/data/
+!apps/backend/app/data/cases.json
+!apps/backend/app/data/gold_answers.json
+!apps/backend/app/data/knowledge_cards.json
+!apps/backend/app/data/user_records.json
 outputs/
 checkpoints/
 
@@ -119,3 +124,4 @@ config/local.*
 
 # 其他
 .codex.md
+apps\backend\app\data\user_records.json

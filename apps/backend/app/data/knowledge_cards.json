@@ -1,0 +1,66 @@
+[
+  {
+    "card_id": "kc_time_b_c",
+    "title": "B/C 时间字段识别",
+    "error_type": "TIME_FORMAT_ERROR",
+    "field": "start_time",
+    "tags": ["time", "format", "B_field"],
+    "content": "NOTAM 中 B) 通常表示开始时间，格式常见为 YYMMDDHHMM；C) 表示结束时间，也可能出现 PERM。"
+  },
+  {
+    "card_id": "kc_time_c",
+    "title": "结束时间与 PERM",
+    "error_type": "TIME_FORMAT_ERROR",
+    "field": "end_time",
+    "tags": ["time", "format", "C_field", "PERM"],
+    "content": "结束时间字段既可能是具体 UTC 时间，也可能是 PERM。不要把 PERM 当成普通时间串。"
+  },
+  {
+    "card_id": "kc_object_rwy_twy",
+    "title": "RWY / TWY 设施识别",
+    "error_type": "OBJECT_CONFUSION",
+    "field": "object_type",
+    "tags": ["object", "facility", "runway", "taxiway"],
+    "content": "RWY 表示 runway，TWY 表示 taxiway。先识别设施类型，再抽取编号或区段。"
+  },
+  {
+    "card_id": "kc_status_clsd_us_act_wip",
+    "title": "常见状态缩写",
+    "error_type": "VALUE_ERROR",
+    "field": "status",
+    "tags": ["abbreviation", "status", "CLSD", "U/S", "ACT", "WIP"],
+    "content": "CLSD/CLOSED 表示关闭，U/S/UNSERVICEABLE 表示不可用，ACT/ACTIVE 表示活动中，WIP 表示施工进行中。"
+  },
+  {
+    "card_id": "kc_impact_closure",
+    "title": "运行影响判断",
+    "error_type": "IMPACT_ERROR",
+    "field": "operational_impact",
+    "tags": ["impact", "closure", "operations"],
+    "content": "运行影响需要转成操作层面的影响，例如 unavailable、taxi with caution、avoidance required。"
+  },
+  {
+    "card_id": "kc_evidence_quote",
+    "title": "证据定位与引用",
+    "error_type": "EVIDENCE_MISSING",
+    "field": "evidence",
+    "tags": ["evidence", "quote", "traceability"],
+    "content": "结构化答案应至少附一到两段关键证据短语，例如机场代码、时间字段、状态短语。"
+  },
+  {
+    "card_id": "kc_format_schema",
+    "title": "结构化字段填写",
+    "error_type": "FORMAT_ERROR",
+    "field": "student_answer",
+    "tags": ["format", "schema", "json"],
+    "content": "MVP 阶段批改依赖结构化字段，不要只提交自然语言句子。"
+  },
+  {
+    "card_id": "kc_airspace_act",
+    "title": "限制区 ACT 判读",
+    "error_type": "IMPACT_ERROR",
+    "field": "status",
+    "tags": ["airspace", "ACT", "restricted_area"],
+    "content": "限制区 ACT 不等于关闭机场，而是说明空域活动中，通常需要避让或申请放行。"
+  }
+]

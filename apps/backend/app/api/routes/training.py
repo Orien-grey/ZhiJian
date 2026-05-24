@@ -1,39 +1,129 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from app.api.deps import require_permission
 from app.db.models import User
-from app.services.training_service import MockTrainingService
+from app.services.training_service import DEFAULT_TRAINING_USER, TrainingService
+
 
 router = APIRouter(prefix="/training", tags=["training"])
 
+
+class AnswerUnit(BaseModel):
+    unit_id: str
+    fields: dict[str, Any] = Field(default_factory=dict)
+
+
 class TrainingSubmission(BaseModel):
-    exercise_id: str
-    user_answer: Any
+    case_id: str
+    student_answer_units: list[AnswerUnit] = Field(default_factory=list)
+
 
 class TrainingResponse(BaseModel):
     status: str
     message: str
     data: Any = None
 
+
+def _resolve_training_user(current_user: User | None) -> str:
+    if current_user and getattr(current_user, "id", None):
+        return str(current_user.id)
+    return DEFAULT_TRAINING_USER
+
+
+@router.get("/categories", response_model=TrainingResponse)
+def list_categories(current_user: User = Depends(require_permission("notam"))) -> TrainingResponse:
+    service = TrainingService()
+    data = service.list_categories(_resolve_training_user(current_user))
+    return TrainingResponse(status="success", message="Categories loaded.", data=data)
+
+
+@router.get("/cases", response_model=TrainingResponse)
+def list_cases(
+    category: str | None = Query(default=None),
+    include_answered: bool = Query(default=False),
+    limit: int = Query(default=50, ge=1, le=200),
+    random_order: bool = Query(default=True),
+    current_user: User = Depends(require_permission("notam")),
+) -> TrainingResponse:
+    service = TrainingService()
+    return TrainingResponse(
+        status="success",
+        message="Cases loaded.",
+        data=service.list_cases(
+            _resolve_training_user(current_user),
+            category=category,
+            include_answered=include_answered,
+            limit=limit,
+            random_order=random_order,
+        ),
+    )
+
+
+@router.get("/next", response_model=TrainingResponse)
+def get_next_case(
+    category: str | None = Query(default=None),
+    current_case_id: str | None = Query(default=None),
+    current_user: User = Depends(require_permission("notam")),
+) -> TrainingResponse:
+    service = TrainingService()
+    data = service.get_next_case(
+        _resolve_training_user(current_user),
+        category=category,
+        current_case_id=current_case_id,
+    )
+    return TrainingResponse(status="success", message="Next case loaded.", data=data)
+
+
+@router.get("/cases/{case_id}", response_model=TrainingResponse)
+def get_case(case_id: str, current_user: User = Depends(require_permission("notam"))) -> TrainingResponse:
+    service = TrainingService()
+    try:
+        case_bundle = service.get_case_bundle(case_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return TrainingResponse(status="success", message="Case loaded.", data=case_bundle)
+
+
 @router.post("/submit", response_model=TrainingResponse)
 def submit_exercise(
     submission: TrainingSubmission,
-    current_user: User = Depends(require_permission("notam")), # Re-using permissions for simplicity
+    current_user: User = Depends(require_permission("notam")),
 ) -> TrainingResponse:
-    """
-    Placeholder endpoint for submitting training exercises.
-    """
-    service = MockTrainingService()
-    result = service.evaluate(submission.exercise_id, submission.user_answer)
-    
+    service = TrainingService()
+    try:
+        result = service.submit(
+            _resolve_training_user(current_user),
+            submission.case_id,
+            [unit.model_dump() for unit in submission.student_answer_units],
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     return TrainingResponse(
         status="success",
-        message="已收到请求，当前为占位回应",
-        data={
-            "submission_received": submission.user_answer,
-            "backend_note": result
-        }
+        message="Training submission processed.",
+        data=result,
     )
+
+
+@router.get("/mistakes", response_model=TrainingResponse)
+def list_mistakes(current_user: User = Depends(require_permission("notam"))) -> TrainingResponse:
+    service = TrainingService()
+    data = service.list_mistakes(_resolve_training_user(current_user))
+    return TrainingResponse(status="success", message="Mistakes loaded.", data=data)
+
+
+@router.get("/progress", response_model=TrainingResponse)
+def training_progress(current_user: User = Depends(require_permission("notam"))) -> TrainingResponse:
+    service = TrainingService()
+    data = service.get_progress(_resolve_training_user(current_user))
+    return TrainingResponse(status="success", message="Progress loaded.", data=data)
+
+
+@router.get("/profile", response_model=TrainingResponse)
+def training_profile(current_user: User = Depends(require_permission("notam"))) -> TrainingResponse:
+    service = TrainingService()
+    data = service.get_profile(_resolve_training_user(current_user))
+    return TrainingResponse(status="success", message="Profile loaded.", data=data)

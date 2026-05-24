@@ -1,0 +1,39 @@
+{
+  "raw_sample_count_before_dedup": 25887,
+  "case_count_after_dedup": 11663,
+  "visible_case_count_without_conflict": 11510,
+  "conflict_count": 1967,
+  "category_count": {
+    "airport": 1003,
+    "airway": 319,
+    "area": 5288,
+    "light": 1399,
+    "navigation": 441,
+    "procedure": 192,
+    "runway": 534,
+    "stand": 429,
+    "standard": 243,
+    "taxiway": 362,
+    "rvr_test": 294,
+    "rvr_train": 1159
+  },
+  "source_count": {
+    "knots": 10210,
+    "notam_evolve": 1453
+  },
+  "answer_shape_count": {
+    "single_dict": 9477,
+    "rows_dict": 2186
+  },
+  "dedup_status_count": {
+    "merged": 10070,
+    "conflict": 153,
+    "unique": 1440
+  },
+  "output_files": {
+    "training_cases": "apps\\backend\\app\\data\\training_cases.json",
+    "gold_answers": "apps\\backend\\app\\data\\gold_answers.json",
+    "dedup_conflicts": "apps\\backend\\app\\data\\dedup_conflicts.json",
+    "question_bank_stats": "apps\\backend\\app\\data\\question_bank_stats.json"
+  }
+}
