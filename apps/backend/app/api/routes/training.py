@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.api.deps import require_permission
@@ -33,14 +33,48 @@ def _resolve_training_user(current_user: User | None) -> str:
     return DEFAULT_TRAINING_USER
 
 
+@router.get("/categories", response_model=TrainingResponse)
+def list_categories(current_user: User = Depends(require_permission("notam"))) -> TrainingResponse:
+    service = TrainingService()
+    data = service.list_categories(_resolve_training_user(current_user))
+    return TrainingResponse(status="success", message="Categories loaded.", data=data)
+
+
 @router.get("/cases", response_model=TrainingResponse)
-def list_cases(current_user: User = Depends(require_permission("notam"))) -> TrainingResponse:
+def list_cases(
+    category: str | None = Query(default=None),
+    include_answered: bool = Query(default=False),
+    limit: int = Query(default=50, ge=1, le=200),
+    random_order: bool = Query(default=True),
+    current_user: User = Depends(require_permission("notam")),
+) -> TrainingResponse:
     service = TrainingService()
     return TrainingResponse(
         status="success",
         message="Cases loaded.",
-        data=service.list_cases(),
+        data=service.list_cases(
+            _resolve_training_user(current_user),
+            category=category,
+            include_answered=include_answered,
+            limit=limit,
+            random_order=random_order,
+        ),
     )
+
+
+@router.get("/next", response_model=TrainingResponse)
+def get_next_case(
+    category: str | None = Query(default=None),
+    current_case_id: str | None = Query(default=None),
+    current_user: User = Depends(require_permission("notam")),
+) -> TrainingResponse:
+    service = TrainingService()
+    data = service.get_next_case(
+        _resolve_training_user(current_user),
+        category=category,
+        current_case_id=current_case_id,
+    )
+    return TrainingResponse(status="success", message="Next case loaded.", data=data)
 
 
 @router.get("/cases/{case_id}", response_model=TrainingResponse)

@@ -4,12 +4,12 @@ import re
 from typing import Any
 
 
-ABILITY_FORMAT = "\u683c\u5f0f\u8bc6\u522b"
-ABILITY_TIME = "\u65f6\u95f4\u89e3\u6790"
-ABILITY_OBJECT = "\u5730\u70b9/\u8bbe\u65bd\u8bc6\u522b"
-ABILITY_STRUCTURE = "\u5b57\u6bb5\u7ed3\u6784\u5316"
-ABILITY_IMPACT = "\u8fd0\u884c\u5f71\u54cd\u5224\u65ad"
-ABILITY_EVIDENCE = "\u8bc1\u636e\u5b9a\u4f4d"
+ABILITY_FORMAT = "格式识别"
+ABILITY_TIME = "时间解析"
+ABILITY_OBJECT = "地点/设施识别"
+ABILITY_STRUCTURE = "字段结构化"
+ABILITY_IMPACT = "运行影响判断"
+ABILITY_EVIDENCE = "证据定位"
 
 ERROR_TO_ABILITY = {
     "MISSING_FIELD": ABILITY_STRUCTURE,

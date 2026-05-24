@@ -271,7 +271,7 @@ const emitSubmit = () => {
 .field-label {
   font-size: 12px;
   color: #58708e;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .json-box {

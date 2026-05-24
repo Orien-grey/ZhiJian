@@ -12,6 +12,13 @@ export interface TrainingCase {
   recommend_reason?: string;
 }
 
+export interface TrainingCategory {
+  category: string;
+  total_count: number;
+  answered_count: number;
+  remaining_count: number;
+}
+
 export interface AnswerUnit {
   unit_id: string;
   source_path?: string;
@@ -110,11 +117,25 @@ export interface TrainingResponse<T> {
 export interface CasesPayload {
   cases: TrainingCase[];
   total: number;
+  returned: number;
+  include_answered: boolean;
+  category: string;
+}
+
+export interface CategoriesPayload {
+  categories: TrainingCategory[];
+  total_categories: number;
 }
 
 export interface CaseDetailPayload {
   case: TrainingCase;
   gold_answer: GoldAnswer;
+}
+
+export interface NextCasePayload {
+  case: TrainingCase | null;
+  gold_answer: GoldAnswer | null;
+  remaining_count: number;
 }
 
 export interface MistakesPayload {
@@ -130,17 +151,32 @@ export interface SubmitTrainingPayload {
   recommended_cases: TrainingCase[];
 }
 
-const listCases = () => api.get<TrainingResponse<CasesPayload>>("/training/cases");
+const listCases = (params?: {
+  category?: string;
+  include_answered?: boolean;
+  limit?: number;
+  random_order?: boolean;
+}) => api.get<TrainingResponse<CasesPayload>>("/training/cases", { params });
+
+const listCategories = () => api.get<TrainingResponse<CategoriesPayload>>("/training/categories");
+
+const getNextCase = (params?: { category?: string; current_case_id?: string }) =>
+  api.get<TrainingResponse<NextCasePayload>>("/training/next", { params });
+
 const getCase = (caseId: string) =>
   api.get<TrainingResponse<CaseDetailPayload>>(`/training/cases/${caseId}`);
+
 const submit = (payload: SubmitTrainingRequest) =>
   api.post<TrainingResponse<SubmitTrainingPayload>>("/training/submit", payload);
+
 const listMistakes = () => api.get<TrainingResponse<MistakesPayload>>("/training/mistakes");
 const getProgress = () => api.get<TrainingResponse<TrainingProgress>>("/training/progress");
 const getProfile = () => api.get<TrainingResponse<AbilityProfile>>("/training/profile");
 
 export const trainingAPI = {
   listCases,
+  listCategories,
+  getNextCase,
   getCase,
   submit,
   listMistakes,

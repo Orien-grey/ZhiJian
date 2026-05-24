@@ -45,17 +45,21 @@
             <div class="card-header">
               <div>
                 <h3>题目选择</h3>
-                <p class="card-sub">从后端题库加载 NOTAM 训练题</p>
+                <p class="card-sub">按题型从未答题池随机获取 NOTAM 训练题</p>
               </div>
-              <n-tag size="small" type="info">{{ cases.length }} 题</n-tag>
+              <n-tag size="small" type="info">当前题型剩余 {{ remainingCount }} 道</n-tag>
             </div>
-            <n-select
-              :value="selectedCaseId"
-              :options="caseOptions"
-              placeholder="请选择训练题目"
-              :loading="casesLoading"
-              @update:value="handleCaseChange"
-            />
+
+            <div class="selector-row">
+              <n-select
+                :value="selectedCategory"
+                :options="categoryOptions"
+                placeholder="选择题目类型"
+                :loading="casesLoading"
+                @update:value="handleCategoryChange"
+              />
+              <n-button :loading="casesLoading" @click="loadNextCase">随机下一题</n-button>
+            </div>
           </div>
 
           <QuestionPracticePanel
@@ -67,8 +71,9 @@
             @submit="handleSubmit"
             @next-case="goNextCase"
           />
+
           <div v-else class="card empty-card">
-            {{ casesLoading ? "题库加载中..." : "暂无可用题目。" }}
+            {{ emptyPracticeMessage }}
           </div>
 
           <AnswerFeedbackPanel
@@ -140,6 +145,7 @@ import {
   type GradingResult,
   type MistakeRecord,
   type TrainingCase,
+  type TrainingCategory,
   type TrainingProgress,
 } from "@/services/training";
 import { useAuthStore } from "@/stores/auth";
@@ -149,7 +155,9 @@ const auth = useAuthStore();
 const message = useMessage();
 
 const activeTab = ref<"practice" | "mistakes" | "profile">("practice");
-const cases = ref<TrainingCase[]>([]);
+const categories = ref<TrainingCategory[]>([]);
+const selectedCategory = ref<string>("all");
+const remainingCount = ref(0);
 const currentCase = ref<TrainingCase | null>(null);
 const currentGoldAnswer = ref<GoldAnswer | null>(null);
 const progress = ref<TrainingProgress | null>(null);
@@ -167,43 +175,72 @@ const submitting = ref(false);
 const casesLoading = ref(false);
 const practiceResetSeed = ref(0);
 
-const caseOptions = computed(() =>
-  cases.value.map((item) => ({
-    label: `${item.category} / ${item.source} / ${item.case_id}`,
-    value: item.case_id,
+const categoryOptions = computed(() => [
+  { label: "全部题型", value: "all" },
+  ...categories.value.map((item) => ({
+    label: `${item.category}（剩余 ${item.remaining_count} / 共 ${item.total_count}）`,
+    value: item.category,
   })),
-);
+]);
 
 const practicePanelKey = computed(
   () => `${selectedCaseId.value || "empty"}-${practiceResetSeed.value}`,
 );
+
+const emptyPracticeMessage = computed(() => {
+  if (casesLoading.value) {
+    return "题库加载中...";
+  }
+  return selectedCategory.value === "all"
+    ? "当前题库已经没有未完成题目。"
+    : `当前题型 ${selectedCategory.value} 已经没有未完成题目。`;
+});
 
 const handleLogout = async () => {
   await auth.logout();
   router.push({ name: "login" });
 };
 
-const loadCases = async () => {
-  casesLoading.value = true;
-  try {
-    const response = await trainingAPI.listCases();
-    cases.value = response.data.data.cases || [];
-    if (!selectedCaseId.value && cases.value.length) {
-      await loadCase(cases.value[0].case_id);
-    }
-  } finally {
-    casesLoading.value = false;
-  }
-};
-
-const loadCase = async (caseId: string) => {
-  const response = await trainingAPI.getCase(caseId);
-  currentCase.value = response.data.data.case;
-  currentGoldAnswer.value = response.data.data.gold_answer;
-  selectedCaseId.value = caseId;
+const resetPracticeCase = () => {
+  currentCase.value = null;
+  currentGoldAnswer.value = null;
+  selectedCaseId.value = null;
   gradingResult.value = null;
   showPracticeGoldAnswer.value = false;
   practiceResetSeed.value += 1;
+};
+
+const loadCategories = async () => {
+  const response = await trainingAPI.listCategories();
+  categories.value = response.data.data.categories || [];
+};
+
+const loadNextCase = async () => {
+  casesLoading.value = true;
+  try {
+    const response = await trainingAPI.getNextCase({
+      category: selectedCategory.value,
+      current_case_id: selectedCaseId.value || undefined,
+    });
+    const payload = response.data.data;
+    remainingCount.value = payload.remaining_count ?? 0;
+    if (!payload.case || !payload.gold_answer) {
+      resetPracticeCase();
+      return;
+    }
+    currentCase.value = payload.case;
+    currentGoldAnswer.value = payload.gold_answer;
+    selectedCaseId.value = payload.case.case_id;
+    gradingResult.value = null;
+    showPracticeGoldAnswer.value = false;
+    practiceResetSeed.value += 1;
+  } catch (error) {
+    console.error("training next case load failed", error);
+    message.error("加载下一题失败");
+    resetPracticeCase();
+  } finally {
+    casesLoading.value = false;
+  }
 };
 
 const loadProgress = async () => {
@@ -224,10 +261,14 @@ const loadMistakes = async () => {
     await handleSelectMistake(mistakes.value[0]);
     return;
   }
-  const updated = mistakes.value.find((record) => record.record_id === selectedMistake.value?.record_id);
-  if (updated) {
-    selectedMistake.value = updated;
+  const updated = mistakes.value.find((record) => record.case_id === selectedMistake.value?.case_id);
+  if (!updated) {
+    selectedMistake.value = null;
+    selectedMistakeGoldAnswer.value = null;
+    mistakeCaseDetail.value = null;
+    return;
   }
+  selectedMistake.value = updated;
 };
 
 const loadProfile = async () => {
@@ -236,8 +277,10 @@ const loadProfile = async () => {
   recommendedCases.value = response.data.data.recommended_cases || [];
 };
 
-const handleCaseChange = async (caseId: string) => {
-  await loadCase(caseId);
+const handleCategoryChange = async (category: string) => {
+  selectedCategory.value = category || "all";
+  resetPracticeCase();
+  await loadNextCase();
 };
 
 const handleSubmit = async (studentAnswerUnits: AnswerUnit[]) => {
@@ -256,7 +299,13 @@ const handleSubmit = async (studentAnswerUnits: AnswerUnit[]) => {
     profile.value = response.data.data.profile;
     recommendedCases.value = response.data.data.recommended_cases || [];
     showPracticeGoldAnswer.value = false;
-    await loadMistakes();
+    await Promise.all([loadMistakes(), loadCategories()]);
+    const currentCategory = categories.value.find((item) => item.category === selectedCategory.value);
+    if (selectedCategory.value === "all") {
+      remainingCount.value = Math.max(0, (progress.value?.total_cases ?? 0) - (progress.value?.answered_count ?? 0));
+    } else {
+      remainingCount.value = currentCategory?.remaining_count ?? 0;
+    }
     message.success(`提交完成，得分 ${response.data.data.grading_result.total_score} 分`);
   } catch (error) {
     console.error("training submit failed", error);
@@ -267,17 +316,7 @@ const handleSubmit = async (studentAnswerUnits: AnswerUnit[]) => {
 };
 
 const goNextCase = async () => {
-  if (!cases.value.length) {
-    return;
-  }
-  const recommendedCase = recommendedCases.value.find((item) => item.case_id !== selectedCaseId.value);
-  if (recommendedCase) {
-    await loadCase(recommendedCase.case_id);
-    return;
-  }
-  const currentIndex = cases.value.findIndex((item) => item.case_id === selectedCaseId.value);
-  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % cases.value.length : 0;
-  await loadCase(cases.value[nextIndex].case_id);
+  await loadNextCase();
 };
 
 const retryPractice = () => {
@@ -301,8 +340,8 @@ const handleSelectMistake = async (record: MistakeRecord) => {
 
 onMounted(async () => {
   try {
-    await Promise.all([loadProgress(), loadMistakes(), loadProfile()]);
-    await loadCases();
+    await Promise.all([loadProgress(), loadMistakes(), loadProfile(), loadCategories()]);
+    await loadNextCase();
   } catch (error) {
     console.error("training lab bootstrap failed", error);
     message.error("训练室初始化失败");
@@ -399,6 +438,13 @@ onMounted(async () => {
   gap: 16px;
 }
 
+.selector-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -423,6 +469,10 @@ onMounted(async () => {
     width: 220px;
     height: 220px;
     margin-left: 0;
+  }
+
+  .selector-row {
+    grid-template-columns: 1fr;
   }
 }
 </style>
