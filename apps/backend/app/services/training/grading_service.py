@@ -4,221 +4,261 @@ import re
 from typing import Any
 
 
-ABILITY_DIMENSIONS = [
-    "格式识别",
-    "时间解析",
-    "地点/设施识别",
-    "缩写理解",
-    "字段结构化",
-    "规则推理",
-    "运行影响判断",
-    "证据定位",
-]
-
-FIELD_WEIGHTS = {
-    "airport": 15,
-    "object_type": 15,
-    "object_id": 10,
-    "start_time": 10,
-    "end_time": 10,
-    "status": 15,
-    "operational_impact": 15,
-    "evidence": 10,
-}
-
-OBJECT_TYPE_SYNONYMS = {
-    "RWY": {"RWY", "RUNWAY"},
-    "TWY": {"TWY", "TAXIWAY"},
-    "ILS": {"ILS"},
-    "PAPI": {"PAPI"},
-    "RESTRICTED_AREA": {"RESTRICTEDAREA", "RESTRICTED_AREA", "RESTRICTED AREA"},
-    "APRON": {"APRON"},
-}
-
-STATUS_SYNONYMS = {
-    "CLSD": {"CLSD", "CLOSED"},
-    "U/S": {"U/S", "UNSERVICEABLE", "UNSERV"},
-    "ACT": {"ACT", "ACTIVE"},
-    "WIP": {"WIP", "WORK IN PROGRESS", "WORKINPROGRESS"},
-}
-
-IMPACT_KEYWORDS = {
-    "CLSD": {"closed", "closure", "unavailable", "not available"},
-    "U/S": {"unavailable", "unserviceable", "out of service", "not available"},
-    "ACT": {"active", "avoid", "clearance", "restricted", "avoidance"},
-    "WIP": {"caution", "work", "construction", "taxi", "care"},
-}
+ABILITY_FORMAT = "\u683c\u5f0f\u8bc6\u522b"
+ABILITY_TIME = "\u65f6\u95f4\u89e3\u6790"
+ABILITY_OBJECT = "\u5730\u70b9/\u8bbe\u65bd\u8bc6\u522b"
+ABILITY_STRUCTURE = "\u5b57\u6bb5\u7ed3\u6784\u5316"
+ABILITY_IMPACT = "\u8fd0\u884c\u5f71\u54cd\u5224\u65ad"
+ABILITY_EVIDENCE = "\u8bc1\u636e\u5b9a\u4f4d"
 
 ERROR_TO_ABILITY = {
-    "MISSING_FIELD": ["字段结构化"],
-    "VALUE_ERROR": ["缩写理解", "规则推理"],
-    "TIME_FORMAT_ERROR": ["时间解析", "字段结构化"],
-    "OBJECT_CONFUSION": ["地点/设施识别"],
-    "IMPACT_ERROR": ["运行影响判断", "规则推理"],
-    "EVIDENCE_MISSING": ["证据定位"],
-    "FORMAT_ERROR": ["格式识别", "字段结构化"],
+    "MISSING_FIELD": ABILITY_STRUCTURE,
+    "VALUE_ERROR": ABILITY_STRUCTURE,
+    "TIME_FORMAT_ERROR": ABILITY_TIME,
+    "OBJECT_CONFUSION": ABILITY_OBJECT,
+    "IMPACT_ERROR": ABILITY_IMPACT,
+    "EVIDENCE_MISSING": ABILITY_EVIDENCE,
+    "FORMAT_ERROR": ABILITY_FORMAT,
 }
 
+TIME_FIELD_HINTS = ("time", "date", "start", "end", "valid", "from", "to")
+OBJECT_FIELD_HINTS = ("airport", "runway", "taxiway", "light", "facility", "object", "location")
+IMPACT_FIELD_HINTS = ("impact", "status", "effect", "unavailable", "downgrade", "closure")
+EVIDENCE_FIELD_HINTS = ("evidence", "source", "reference", "desc")
 
-def _normalize_text(value: Any) -> str:
+
+def _normalize_scalar(value: Any) -> Any:
     if value is None:
-        return ""
-    return str(value).strip().upper()
+        return None
+    if isinstance(value, (dict, list)):
+        return value
+    compact = re.sub(r"\s+", " ", str(value).strip())
+    return compact.upper()
 
 
-def _normalize_compact(value: Any) -> str:
-    return re.sub(r"\s+", "", _normalize_text(value))
+def _is_empty(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip() == ""
+    if isinstance(value, list):
+        return len(value) == 0
+    return False
 
 
-def _normalize_object_type(value: Any) -> str:
-    compact = _normalize_compact(value)
-    for canonical, synonyms in OBJECT_TYPE_SYNONYMS.items():
-        normalized_synonyms = {re.sub(r"\s+", "", item.upper()) for item in synonyms}
-        if compact in normalized_synonyms:
-            return canonical
-    return compact
+def _is_time_field(field_name: str) -> bool:
+    lowered = field_name.lower()
+    return any(hint in lowered for hint in TIME_FIELD_HINTS)
 
 
-def _normalize_status(value: Any) -> str:
-    compact = _normalize_compact(value)
-    for canonical, synonyms in STATUS_SYNONYMS.items():
-        normalized_synonyms = {re.sub(r"\s+", "", item.upper()) for item in synonyms}
-        if compact in normalized_synonyms:
-            return canonical
-    return compact
+def _guess_error_type(field_name: str, student_value: Any, gold_value: Any) -> str:
+    lowered = field_name.lower()
+    if _is_time_field(field_name):
+        if isinstance(student_value, str) and student_value.strip():
+            candidate = student_value.strip().upper()
+            if not re.fullmatch(r"\d{10}|PERM", candidate):
+                return "TIME_FORMAT_ERROR"
+        return "VALUE_ERROR"
+    if any(hint in lowered for hint in OBJECT_FIELD_HINTS):
+        return "OBJECT_CONFUSION"
+    if any(hint in lowered for hint in IMPACT_FIELD_HINTS):
+        return "IMPACT_ERROR"
+    if any(hint in lowered for hint in EVIDENCE_FIELD_HINTS):
+        return "EVIDENCE_MISSING"
+    if isinstance(gold_value, (dict, list)) or isinstance(student_value, (dict, list)):
+        return "FORMAT_ERROR"
+    return "VALUE_ERROR"
 
 
-def _normalize_object_id(value: Any) -> str:
-    text = _normalize_text(value)
-    text = re.sub(r"\s+", " ", text)
-    return text.replace("RUNWAY", "RWY").replace("TAXIWAY", "TWY")
-
-
-def _is_valid_notam_time(value: Any) -> bool:
-    text = _normalize_text(value)
-    return text == "PERM" or bool(re.fullmatch(r"\d{10}", text))
-
-
-def _impact_matches(student_value: Any, status_value: Any) -> bool:
-    text = str(student_value or "").lower()
-    status = _normalize_status(status_value)
-    return any(keyword in text for keyword in IMPACT_KEYWORDS.get(status, set()))
-
-
-def _add_error(
-    errors: list[dict[str, Any]],
-    error_type: str,
+def _build_field_result(
     field: str,
-    message: str,
-    expected: Any = None,
-    actual: Any = None,
-) -> None:
-    errors.append(
-        {
-            "error_type": error_type,
-            "field": field,
-            "message": message,
-            "expected": expected,
-            "actual": actual,
-            "abilities": ERROR_TO_ABILITY.get(error_type, []),
-        }
-    )
+    student_value: Any,
+    gold_value: Any,
+    is_correct: bool,
+    error_type: str | None = None,
+    message: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "field": field,
+        "student_value": student_value,
+        "gold_value": gold_value,
+        "score": 100 if is_correct else 0,
+        "is_correct": is_correct,
+        "error_type": error_type,
+        "message": message or ("Correct" if is_correct else "Value does not match the gold answer"),
+    }
 
 
-def grade_answer(student_answer: dict[str, Any], gold_answer: dict[str, Any]) -> dict[str, Any]:
-    if not isinstance(student_answer, dict):
-        errors: list[dict[str, Any]] = []
-        _add_error(errors, "FORMAT_ERROR", "student_answer", "Student answer must be a JSON object.", actual=student_answer)
-        return {
-            "total_score": 0,
-            "field_scores": {field: 0 for field in FIELD_WEIGHTS},
-            "errors": errors,
-            "feedback": ["答案格式错误：需要按约定 schema 提交结构化字段。"],
-            "ability_dimensions": ABILITY_DIMENSIONS,
-        }
+def _build_error(field: str, error_type: str, message: str) -> dict[str, Any]:
+    return {
+        "field": field,
+        "error_type": error_type,
+        "message": message,
+        "ability": ERROR_TO_ABILITY.get(error_type),
+    }
 
-    field_scores: dict[str, int] = {field: 0 for field in FIELD_WEIGHTS}
-    errors: list[dict[str, Any]] = []
 
-    if not student_answer.get("airport"):
-        _add_error(errors, "MISSING_FIELD", "airport", "Airport is required.", expected=gold_answer.get("airport"))
-    elif _normalize_text(student_answer.get("airport")) == _normalize_text(gold_answer.get("airport")):
-        field_scores["airport"] = FIELD_WEIGHTS["airport"]
+def _summary_from_score(score: int, errors: list[dict[str, Any]]) -> dict[str, Any]:
+    if score >= 95:
+        level = "excellent"
+        message = "The answer is almost fully correct."
+    elif score >= 80:
+        level = "good"
+        message = "The answer is mostly correct with a few issues."
+    elif score >= 60:
+        level = "partial"
+        message = "The answer is partially correct and needs revision."
     else:
-        _add_error(errors, "VALUE_ERROR", "airport", "Airport does not match.", gold_answer.get("airport"), student_answer.get("airport"))
+        level = "weak"
+        message = "The answer differs significantly from the gold answer."
 
-    if not student_answer.get("object_type"):
-        _add_error(errors, "MISSING_FIELD", "object_type", "Object type is required.", expected=gold_answer.get("object_type"))
-    elif _normalize_object_type(student_answer.get("object_type")) == _normalize_object_type(gold_answer.get("object_type")):
-        field_scores["object_type"] = FIELD_WEIGHTS["object_type"]
-    else:
-        _add_error(errors, "OBJECT_CONFUSION", "object_type", "Object type does not match.", gold_answer.get("object_type"), student_answer.get("object_type"))
+    related_abilities = sorted({error["ability"] for error in errors if error.get("ability")})
+    return {
+        "level": level,
+        "message": message,
+        "error_count": len(errors),
+        "related_abilities": related_abilities,
+    }
 
-    if not student_answer.get("object_id"):
-        _add_error(errors, "MISSING_FIELD", "object_id", "Object ID is required.", expected=gold_answer.get("object_id"))
-    elif _normalize_object_id(student_answer.get("object_id")) == _normalize_object_id(gold_answer.get("object_id")):
-        field_scores["object_id"] = FIELD_WEIGHTS["object_id"]
-    else:
-        _add_error(errors, "VALUE_ERROR", "object_id", "Object ID does not match.", gold_answer.get("object_id"), student_answer.get("object_id"))
 
-    for field_name in ("start_time", "end_time"):
-        value = student_answer.get(field_name)
-        if not value:
-            _add_error(errors, "MISSING_FIELD", field_name, f"{field_name} is required.", expected=gold_answer.get(field_name))
-        elif not _is_valid_notam_time(value):
-            _add_error(errors, "TIME_FORMAT_ERROR", field_name, f"{field_name} has invalid format.", gold_answer.get(field_name), value)
-        elif _normalize_text(value) == _normalize_text(gold_answer.get(field_name)):
-            field_scores[field_name] = FIELD_WEIGHTS[field_name]
-        else:
-            _add_error(errors, "VALUE_ERROR", field_name, f"{field_name} does not match.", gold_answer.get(field_name), value)
-
-    if not student_answer.get("status"):
-        _add_error(errors, "MISSING_FIELD", "status", "Status is required.", expected=gold_answer.get("status"))
-    elif _normalize_status(student_answer.get("status")) == _normalize_status(gold_answer.get("status")):
-        field_scores["status"] = FIELD_WEIGHTS["status"]
-    else:
-        _add_error(errors, "VALUE_ERROR", "status", "Status does not match.", gold_answer.get("status"), student_answer.get("status"))
-
-    if not student_answer.get("operational_impact"):
-        _add_error(errors, "MISSING_FIELD", "operational_impact", "Operational impact is required.", expected=gold_answer.get("operational_impact"))
-    elif _impact_matches(student_answer.get("operational_impact"), gold_answer.get("status")):
-        field_scores["operational_impact"] = FIELD_WEIGHTS["operational_impact"]
-    else:
-        _add_error(
-            errors,
-            "IMPACT_ERROR",
-            "operational_impact",
-            "Operational impact misses the key implication of the NOTAM.",
-            gold_answer.get("operational_impact"),
-            student_answer.get("operational_impact"),
+def _feedback_from_errors(errors: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
+    if not errors:
+        return (
+            ["Field extraction is complete and matches the gold answer."],
+            ["Move to the next case to broaden coverage."],
         )
 
-    evidence = student_answer.get("evidence")
-    if not isinstance(evidence, list):
-        _add_error(errors, "FORMAT_ERROR", "evidence", "Evidence must be an array.", expected=gold_answer.get("evidence"), actual=evidence)
-    elif len([item for item in evidence if str(item).strip()]) == 0:
-        _add_error(errors, "EVIDENCE_MISSING", "evidence", "Evidence array is empty.", expected=gold_answer.get("evidence"), actual=evidence)
-    else:
-        field_scores["evidence"] = FIELD_WEIGHTS["evidence"]
-
     feedback: list[str] = []
-    if any(error["field"] in {"start_time", "end_time"} for error in errors):
-        feedback.append("时间字段仍有缺失或格式问题。")
-    if any(error["field"] in {"airport", "object_type", "object_id"} for error in errors):
-        feedback.append("地点/设施识别存在偏差。")
-    if any(error["field"] == "status" for error in errors):
-        feedback.append("状态缩写理解需要加强。")
-    if any(error["field"] == "operational_impact" for error in errors):
-        feedback.append("运行影响判断仍需加强。")
-    if any(error["field"] == "evidence" for error in errors):
-        feedback.append("请补充可追溯的证据短语。")
+    suggestions: list[str] = []
+    error_types = {error["error_type"] for error in errors}
+
+    if "TIME_FORMAT_ERROR" in error_types:
+        feedback.append("Time fields contain formatting issues.")
+        suggestions.append("Normalize time values to YYMMDDHHMM or PERM before submitting.")
+    if "OBJECT_CONFUSION" in error_types:
+        feedback.append("Location or facility recognition is unstable.")
+        suggestions.append("Anchor the airport and facility first, then decide the status.")
+    if "IMPACT_ERROR" in error_types:
+        feedback.append("Operational impact judgment is inaccurate.")
+        suggestions.append("Read status words and impact words together before structuring the answer.")
+    if "EVIDENCE_MISSING" in error_types:
+        feedback.append("Evidence is missing or cannot support the submitted answer.")
+        suggestions.append("Add direct text snippets that support the extracted fields.")
+    if "MISSING_FIELD" in error_types:
+        feedback.append("Some required fields are empty or missing.")
+        suggestions.append("Check each field before submitting.")
     if not feedback:
-        feedback.append("字段抽取完整，规则判定正确。")
+        feedback.append("Some field values still differ from the gold answer.")
+    if not suggestions:
+        suggestions.append("Revise the incorrect fields and submit again.")
+    return feedback, suggestions
+
+
+def grade_answer(
+    student_answer_units: list[dict[str, Any]],
+    gold_answer_units: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not isinstance(student_answer_units, list):
+        errors = [
+            _build_error(
+                "student_answer_units",
+                "FORMAT_ERROR",
+                "student_answer_units must be a list.",
+            )
+        ]
+        summary = _summary_from_score(0, errors)
+        feedback, suggestions = _feedback_from_errors(errors)
+        return {
+            "case_id": "",
+            "total_score": 0,
+            "summary": summary,
+            "unit_results": [],
+            "errors": errors,
+            "feedback": feedback,
+            "suggestions": suggestions,
+            "student_answer_units": [],
+            "gold_answer_units": gold_answer_units or [],
+        }
+
+    unit_results: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    total_fields = 0
+    correct_fields = 0
+    max_len = max(len(student_answer_units), len(gold_answer_units))
+
+    for index in range(max_len):
+        student_unit = student_answer_units[index] if index < len(student_answer_units) else None
+        gold_unit = gold_answer_units[index] if index < len(gold_answer_units) else None
+        unit_id = (student_unit or {}).get("unit_id") or (gold_unit or {}).get("unit_id") or f"unit_{index}"
+        field_results: list[dict[str, Any]] = []
+
+        student_fields = (student_unit or {}).get("fields", {})
+        gold_fields = (gold_unit or {}).get("fields", {})
+        field_names = list(dict.fromkeys([*gold_fields.keys(), *student_fields.keys()]))
+
+        if not field_names and (student_unit or gold_unit):
+            field_names = ["fields"]
+
+        for field_name in field_names:
+            total_fields += 1
+            student_value = student_fields.get(field_name) if isinstance(student_fields, dict) else None
+            gold_value = gold_fields.get(field_name) if isinstance(gold_fields, dict) else None
+
+            if gold_unit is None:
+                error_type = "FORMAT_ERROR"
+                message = "Submitted answer has more units than the gold answer."
+                field_results.append(
+                    _build_field_result(field_name, student_value, None, False, error_type, message)
+                )
+                errors.append(_build_error(field_name, error_type, message))
+                continue
+
+            if _is_empty(student_value):
+                error_type = "MISSING_FIELD"
+                message = "The field is missing or empty."
+                field_results.append(
+                    _build_field_result(field_name, student_value, gold_value, False, error_type, message)
+                )
+                errors.append(_build_error(field_name, error_type, message))
+                continue
+
+            if _normalize_scalar(student_value) == _normalize_scalar(gold_value):
+                correct_fields += 1
+                field_results.append(_build_field_result(field_name, student_value, gold_value, True))
+                continue
+
+            error_type = _guess_error_type(field_name, student_value, gold_value)
+            message = "Value does not match the gold answer."
+            if error_type == "TIME_FORMAT_ERROR":
+                message = "Time field format is invalid or does not match the gold answer."
+            elif error_type == "OBJECT_CONFUSION":
+                message = "Location or facility field is incorrect."
+            elif error_type == "IMPACT_ERROR":
+                message = "Operational impact field is incorrect."
+            elif error_type == "EVIDENCE_MISSING":
+                message = "Evidence field is missing or unsupported."
+            elif error_type == "FORMAT_ERROR":
+                message = "Field format does not match the gold answer."
+
+            field_results.append(
+                _build_field_result(field_name, student_value, gold_value, False, error_type, message)
+            )
+            errors.append(_build_error(field_name, error_type, message))
+
+        unit_results.append({"unit_id": unit_id, "field_results": field_results})
+
+    total_score = 0 if total_fields == 0 else round((correct_fields / total_fields) * 100)
+    summary = _summary_from_score(total_score, errors)
+    feedback, suggestions = _feedback_from_errors(errors)
 
     return {
-        "total_score": sum(field_scores.values()),
-        "field_scores": field_scores,
+        "case_id": "",
+        "total_score": total_score,
+        "summary": summary,
+        "unit_results": unit_results,
         "errors": errors,
         "feedback": feedback,
-        "ability_dimensions": ABILITY_DIMENSIONS,
+        "suggestions": suggestions,
+        "student_answer_units": student_answer_units,
+        "gold_answer_units": gold_answer_units,
     }
