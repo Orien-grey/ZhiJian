@@ -46,13 +46,6 @@ export interface UnitResult {
   field_results: FieldResult[];
 }
 
-export interface GradingError {
-  field: string;
-  error_type: string;
-  message: string;
-  ability?: string;
-}
-
 export interface GradingResult {
   case_id?: string;
   total_score: number;
@@ -63,11 +56,24 @@ export interface GradingResult {
     related_abilities: string[];
   };
   unit_results: UnitResult[];
-  errors: GradingError[];
   feedback: string[];
   suggestions: string[];
   student_answer_units: AnswerUnit[];
   gold_answer_units: AnswerUnit[];
+}
+
+export interface DiagnosisItem {
+  field: string;
+  diagnosis_type: string;
+  ability?: string;
+  message: string;
+}
+
+export interface DiagnosisResult {
+  summary: string;
+  diagnosis_items: DiagnosisItem[];
+  weak_abilities: string[];
+  suggestions: string[];
 }
 
 export interface TrainingProgress {
@@ -85,8 +91,8 @@ export interface MistakeRecord {
   case?: TrainingCase;
   student_answer_units: AnswerUnit[];
   grading_result: GradingResult;
+  diagnosis_result?: DiagnosisResult;
   score: number;
-  errors: GradingError[];
   created_at: string;
 }
 
@@ -145,6 +151,7 @@ export interface MistakesPayload {
 export interface SubmitTrainingPayload {
   case: TrainingCase;
   grading_result: GradingResult;
+  diagnosis_result: DiagnosisResult;
   record: MistakeRecord;
   progress: TrainingProgress;
   profile: AbilityProfile;

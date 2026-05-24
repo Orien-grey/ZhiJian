@@ -70,6 +70,8 @@ defineEmits<{
 const categoryFilter = ref<string>("all");
 const errorTypeFilter = ref<string>("all");
 
+const diagnosisItemsOf = (record: MistakeRecord) => record.diagnosis_result?.diagnosis_items ?? [];
+
 const categoryOptions = computed(() => [
   { label: "全部错题", value: "all" },
   ...Array.from(new Set(props.records.map((record) => record.case?.category).filter(Boolean))).map((category) => ({
@@ -82,7 +84,9 @@ const errorTypeOptions = computed(() => [
   { label: "全部错误类型", value: "all" },
   ...Array.from(
     new Set(
-      props.records.flatMap((record) => record.errors.map((error) => error.error_type)).filter(Boolean),
+      props.records.flatMap((record) =>
+        diagnosisItemsOf(record).map((item) => item.diagnosis_type).filter(Boolean),
+      ),
     ),
   ).map((errorType) => ({
     label: errorType,
@@ -95,13 +99,13 @@ const filteredRecords = computed(() =>
     const matchCategory = categoryFilter.value === "all" || record.case?.category === categoryFilter.value;
     const matchErrorType =
       errorTypeFilter.value === "all" ||
-      record.errors.some((error) => error.error_type === errorTypeFilter.value);
+      diagnosisItemsOf(record).some((item) => item.diagnosis_type === errorTypeFilter.value);
     return matchCategory && matchErrorType;
   }),
 );
 
 const uniqueErrorTypes = (record: MistakeRecord) =>
-  Array.from(new Set(record.errors.map((error) => error.error_type))).slice(0, 3);
+  Array.from(new Set(diagnosisItemsOf(record).map((item) => item.diagnosis_type))).slice(0, 3);
 
 const formatDate = (value: string) => {
   const date = new Date(value);

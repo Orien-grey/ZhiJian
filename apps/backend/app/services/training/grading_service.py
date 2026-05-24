@@ -87,18 +87,21 @@ def _build_field_result(
         "error_type": error_type,
         "message": message or ("Correct" if is_correct else "Value does not match the gold answer"),
     }
+def _iter_incorrect_field_results(unit_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    incorrect_field_results: list[dict[str, Any]] = []
+    for unit_result in unit_results:
+        field_results = unit_result.get("field_results", [])
+        if not isinstance(field_results, list):
+            continue
+        for field_result in field_results:
+            if not isinstance(field_result, dict):
+                continue
+            if field_result.get("is_correct") is False:
+                incorrect_field_results.append(field_result)
+    return incorrect_field_results
 
 
-def _build_error(field: str, error_type: str, message: str) -> dict[str, Any]:
-    return {
-        "field": field,
-        "error_type": error_type,
-        "message": message,
-        "ability": ERROR_TO_ABILITY.get(error_type),
-    }
-
-
-def _summary_from_score(score: int, errors: list[dict[str, Any]]) -> dict[str, Any]:
+def _summary_from_score(score: int, unit_results: list[dict[str, Any]]) -> dict[str, Any]:
     if score >= 95:
         level = "excellent"
         message = "The answer is almost fully correct."
@@ -112,17 +115,25 @@ def _summary_from_score(score: int, errors: list[dict[str, Any]]) -> dict[str, A
         level = "weak"
         message = "The answer differs significantly from the gold answer."
 
-    related_abilities = sorted({error["ability"] for error in errors if error.get("ability")})
+    incorrect_field_results = _iter_incorrect_field_results(unit_results)
+    related_abilities = sorted(
+        {
+            ERROR_TO_ABILITY.get(str(field_result.get("error_type")))
+            for field_result in incorrect_field_results
+            if ERROR_TO_ABILITY.get(str(field_result.get("error_type")))
+        }
+    )
     return {
         "level": level,
         "message": message,
-        "error_count": len(errors),
+        "error_count": len(incorrect_field_results),
         "related_abilities": related_abilities,
     }
 
 
-def _feedback_from_errors(errors: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
-    if not errors:
+def _feedback_from_unit_results(unit_results: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
+    incorrect_field_results = _iter_incorrect_field_results(unit_results)
+    if not incorrect_field_results:
         return (
             ["Field extraction is complete and matches the gold answer."],
             ["Move to the next case to broaden coverage."],
@@ -130,7 +141,7 @@ def _feedback_from_errors(errors: list[dict[str, Any]]) -> tuple[list[str], list
 
     feedback: list[str] = []
     suggestions: list[str] = []
-    error_types = {error["error_type"] for error in errors}
+    error_types = {field_result.get("error_type") for field_result in incorrect_field_results}
 
     if "TIME_FORMAT_ERROR" in error_types:
         feedback.append("Time fields contain formatting issues.")
@@ -159,21 +170,28 @@ def grade_answer(
     gold_answer_units: list[dict[str, Any]],
 ) -> dict[str, Any]:
     if not isinstance(student_answer_units, list):
-        errors = [
-            _build_error(
-                "student_answer_units",
-                "FORMAT_ERROR",
-                "student_answer_units must be a list.",
-            )
+        unit_results = [
+            {
+                "unit_id": "unit_0",
+                "field_results": [
+                    _build_field_result(
+                        "student_answer_units",
+                        student_answer_units,
+                        gold_answer_units or [],
+                        False,
+                        "FORMAT_ERROR",
+                        "student_answer_units must be a list.",
+                    )
+                ],
+            }
         ]
-        summary = _summary_from_score(0, errors)
-        feedback, suggestions = _feedback_from_errors(errors)
+        summary = _summary_from_score(0, unit_results)
+        feedback, suggestions = _feedback_from_unit_results(unit_results)
         return {
             "case_id": "",
             "total_score": 0,
             "summary": summary,
-            "unit_results": [],
-            "errors": errors,
+            "unit_results": unit_results,
             "feedback": feedback,
             "suggestions": suggestions,
             "student_answer_units": [],
@@ -181,7 +199,6 @@ def grade_answer(
         }
 
     unit_results: list[dict[str, Any]] = []
-    errors: list[dict[str, Any]] = []
     total_fields = 0
     correct_fields = 0
     max_len = max(len(student_answer_units), len(gold_answer_units))
@@ -210,7 +227,6 @@ def grade_answer(
                 field_results.append(
                     _build_field_result(field_name, student_value, None, False, error_type, message)
                 )
-                errors.append(_build_error(field_name, error_type, message))
                 continue
 
             if _is_empty(student_value):
@@ -219,7 +235,6 @@ def grade_answer(
                 field_results.append(
                     _build_field_result(field_name, student_value, gold_value, False, error_type, message)
                 )
-                errors.append(_build_error(field_name, error_type, message))
                 continue
 
             if _normalize_scalar(student_value) == _normalize_scalar(gold_value):
@@ -243,20 +258,18 @@ def grade_answer(
             field_results.append(
                 _build_field_result(field_name, student_value, gold_value, False, error_type, message)
             )
-            errors.append(_build_error(field_name, error_type, message))
 
         unit_results.append({"unit_id": unit_id, "field_results": field_results})
 
     total_score = 0 if total_fields == 0 else round((correct_fields / total_fields) * 100)
-    summary = _summary_from_score(total_score, errors)
-    feedback, suggestions = _feedback_from_errors(errors)
+    summary = _summary_from_score(total_score, unit_results)
+    feedback, suggestions = _feedback_from_unit_results(unit_results)
 
     return {
         "case_id": "",
         "total_score": total_score,
         "summary": summary,
         "unit_results": unit_results,
-        "errors": errors,
         "feedback": feedback,
         "suggestions": suggestions,
         "student_answer_units": student_answer_units,

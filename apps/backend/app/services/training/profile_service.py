@@ -80,6 +80,14 @@ def get_latest_records_by_case(user_id: str) -> list[dict[str, Any]]:
     return latest_records
 
 
+def _get_diagnosis_items(record: dict[str, Any]) -> list[dict[str, Any]]:
+    diagnosis_result = record.get("diagnosis_result", {})
+    if not isinstance(diagnosis_result, dict):
+        return []
+    items = diagnosis_result.get("diagnosis_items", [])
+    return items if isinstance(items, list) else []
+
+
 def get_answered_case_ids(user_id: str) -> set[str]:
     return {record.get("case_id") for record in get_latest_records_by_case(user_id) if record.get("case_id")}
 
@@ -121,12 +129,12 @@ def get_progress_snapshot(user_id: str, total_cases: int) -> dict[str, Any]:
     correct_count = sum(
         1
         for record in records
-        if int(record.get("score", 0)) >= 100 and len(record.get("errors", [])) == 0
+        if int(record.get("score", 0)) >= 100 and len(_get_diagnosis_items(record)) == 0
     )
     mistake_count = sum(
         1
         for record in records
-        if int(record.get("score", 0)) < 100 or len(record.get("errors", [])) > 0
+        if int(record.get("score", 0)) < 100 or len(_get_diagnosis_items(record)) > 0
     )
     latest_record = max(
         enumerate(records),
@@ -160,8 +168,8 @@ def get_user_profile(user_id: str) -> dict[str, Any]:
     error_counts = {ability: 0 for ability in ABILITY_DIMENSIONS}
 
     for record in records:
-        for error in record.get("errors", []):
-            ability = error.get("ability")
+        for item in _get_diagnosis_items(record):
+            ability = item.get("ability")
             if ability in error_counts:
                 error_counts[ability] += 1
 
