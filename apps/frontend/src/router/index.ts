@@ -5,6 +5,7 @@ import HomeView from "@/views/HomeView.vue";
 import PlaceholderView from "@/views/PlaceholderView.vue";
 import TrainingLab from "@/views/TrainingLab.vue";
 import GeoIntelView from "@/views/GeoIntelView.vue";
+import AeroIntelDashboard from "@/views/dashboard/AeroIntelDashboard.vue";
 
 import ApiKeysView from "@/views/ApiKeysView.vue";
 import NotamView from "@/views/NotamView.vue";
@@ -38,9 +39,15 @@ const routes = [
     meta: { requiresAuth: true, title: "API 密钥库" },
   },
   {
+    path: "/dashboard",
+    name: "dashboard",
+    component: AeroIntelDashboard,
+    meta: { requiresAuth: true, title: "航行情报动态看板" },
+  },
+  {
     path: "/maps",
     name: "maps",
-    component:GeoIntelView,
+    component: GeoIntelView,
     meta: { requiresAuth: true, title: "地理情报" },
   },
 ];

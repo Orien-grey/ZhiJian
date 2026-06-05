@@ -5,6 +5,7 @@
       <p>航行情报作战舱</p>
       <nav class="nav-list">
         <router-link class="nav-item" to="/">总览</router-link>
+        <router-link class="nav-item" to="/dashboard">情报看板</router-link>
         <router-link class="nav-item" to="/notam">NOTAM 中心</router-link>
         <router-link class="nav-item" to="/maps">地理情报</router-link>
         <router-link class="nav-item" to="/routes">航路规划</router-link>
