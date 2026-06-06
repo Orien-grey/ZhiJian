@@ -74,20 +74,20 @@ const activeLanding = computed(() => props.landingMinima.filter(l => l.runway ==
 .body::-webkit-scrollbar-thumb { background:rgba(0,180,240,0.1); border-radius:4px; }
 
 .rw-tabs { display:flex; gap:8px; margin-bottom:16px; }
-.rwt { padding:5px 16px; border-radius:5px; font-size:11px; cursor:pointer; background:rgba(255,255,255,0.02); color:#475569; border:1px solid rgba(255,255,255,0.05); font-family:'IBM Plex Mono',monospace; }
-.rwt.sel { background:rgba(0,180,240,0.08); color:#00b8e6; border-color:rgba(0,180,240,0.2); }
+.rwt { padding:5px 16px; border-radius:5px; font-size:11px; cursor:pointer; background:rgba(255,255,255,0.01); color:#475569; border:1px solid rgba(255,255,255,0.05); font-family:'IBM Plex Mono',monospace; }
+.rwt.sel { background:rgba(0,180,240,0.07); color:#00b8e6; border-color:rgba(0,180,240,0.2); }
 
 .section { margin-bottom:18px; }
 .sec-title { font-size:11px; font-weight:600; color:#64748b; margin:0 0 10px; letter-spacing:0.06em; text-transform:uppercase; }
 .tbl { width:100%; border-collapse:collapse; font-size:10.5px; }
 .tbl th { padding:7px 10px; text-align:left; color:#475569; font-weight:500; background:rgba(255,255,255,0.015); border-bottom:1px solid rgba(255,255,255,0.05); white-space:nowrap; }
-.tbl td { padding:7px 10px; color:#cbd5e1; border-bottom:1px solid rgba(255,255,255,0.02); }
+.tbl td { padding:7px 10px; color:#cbd5e1; border-bottom:1px solid rgba(255,255,255,0.01); }
 .tbl tr:hover td { background:rgba(0,180,240,0.02); }
 .mono { font-family:'IBM Plex Mono',monospace; font-size:10px; }
 .val-highlight { color:#00b8e6; font-weight:600; }
 .val-warn { color:#ef4444; font-weight:700; }
 .remark { font-size:10px; color:#64748b; margin:4px 0; }
 .remark-cell { font-size:9.5px; color:#64748b; }
-.std-box { display:flex; align-items:center; gap:10px; margin:10px 0; padding:8px 12px; border-radius:6px; background:rgba(0,180,240,0.04); border:1px solid rgba(0,180,240,0.08); font-size:11px; }
+.std-box { display:flex; align-items:center; gap:10px; margin:10px 0; padding:8px 12px; border-radius:6px; background:rgba(0,180,240,0.04); border:1px solid rgba(0,180,240,0.07); font-size:11px; }
 .std-lbl { color:#64748b; }
 </style>

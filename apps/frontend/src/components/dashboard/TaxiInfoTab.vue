@@ -7,7 +7,7 @@
           <rect width="800" height="520" fill="#080e1e" rx="6" />
           <!-- 跑道 -->
           <rect v-for="rw in svgRunways" :key="rw.id" :x="rw.x" :y="rw.y" :width="rw.w" :height="rw.h"
-            fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" rx="2" />
+            fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" rx="2" />
           <!-- 跑道编号 -->
           <text v-for="lbl in svgLabels" :key="lbl.id" :x="lbl.x" :y="lbl.y"
             fill="rgba(255,255,255,0.25)" font-size="11" font-family="IBM Plex Mono" text-anchor="middle">{{ lbl.text }}</text>
@@ -98,10 +98,10 @@ const twyLabels = computed(() =>
 .body { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(0,180,240,0.1) transparent; }
 .body::-webkit-scrollbar { width:4px; }
 .body::-webkit-scrollbar-thumb { background:rgba(0,180,240,0.1); border-radius:4px; }
-.taxi-body { padding:16px 22px; }
+.taxi-body { padding:15px 22px; }
 .taxi-grid { display:flex; gap:16px; height:100%; }
 .taxi-map { flex:1; min-width:0; }
-.airport-svg { width:100%; height:auto; border-radius:6px; border:1px solid rgba(255,255,255,0.04); }
+.airport-svg { width:100%; height:auto; border-radius:6px; border:1px solid rgba(255,255,255,0.03); }
 .twy-interactive { cursor:pointer; transition:opacity 0.15s; }
 .twy-interactive:hover { opacity:0.7; }
 .taxi-side { width:220px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; }

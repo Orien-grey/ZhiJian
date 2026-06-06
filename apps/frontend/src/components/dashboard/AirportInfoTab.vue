@@ -46,7 +46,7 @@ defineProps<{
 .body::-webkit-scrollbar-thumb { background:rgba(0,180,240,0.1); border-radius:4px; }
 
 .info-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
-.icard { padding:14px 16px; border-radius:8px; background:rgba(255,255,255,0.015); border:1px solid rgba(255,255,255,0.04); }
+.icard { padding:14px 16px; border-radius:8px; background:rgba(255,255,255,0.015); border:1px solid rgba(255,255,255,0.03); }
 .ilbl { font-size:10px; color:#475569; display:block; margin-bottom:6px; letter-spacing:0.05em; }
 .ival { font-size:14px; font-weight:700; color:#e2e8f0; font-family:'IBM Plex Mono',monospace; }
 
