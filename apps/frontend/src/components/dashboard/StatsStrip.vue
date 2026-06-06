@@ -4,35 +4,66 @@
       v-for="card in cards"
       :key="card.key"
       :class="cardBaseCls"
-      :style="cardStyle(card.accent)"
+      :style="cardBgStyle(card.accent)"
+      @mouseenter="hovered = card.key"
+      @mouseleave="hovered = null"
     >
-      <!-- 背景光斑 -->
-      <div :class="glowOrbCls" :style="glowOrbStyle(card.accent)" />
-      <!-- 图标 -->
+      <!-- 动态扫描线 -->
+      <div :class="scanLineCls" :style="scanLineStyle(card.accent, hovered === card.key)" />
+
+      <!-- 角标装饰 -->
+      <div :class="cornerTLCls" :style="cornerStyle(card.accent)" />
+      <div :class="cornerTRCls" :style="cornerStyle(card.accent)" />
+      <div :class="cornerBLCls" :style="cornerStyle(card.accent)" />
+      <div :class="cornerBRCls" :style="cornerStyle(card.accent)" />
+
+      <!-- 背景网格 -->
+      <div :class="gridBgCls" />
+
+      <!-- 顶部光条 -->
+      <div :class="topBarCls" :style="topBarStyle(card.accent)" />
+
+      <!-- 图标区域 -->
       <div :class="iconWrapCls" :style="iconWrapStyle(card.accent)">
         <span :class="iconTextCls" :style="iconTextStyle(card.accent)">{{ card.icon }}</span>
+        <div :class="iconRingCls" :style="iconRingStyle(card.accent)" />
       </div>
+
       <!-- 内容 -->
       <div :class="bodyCls">
-        <p :class="labelCls">{{ card.label }}</p>
+        <div :class="labelRowCls">
+          <p :class="labelCls">{{ card.label }}</p>
+          <div v-if="card.change !== undefined" :class="changeBadgeCls" :style="changeBadgeStyle(card.change)">
+            <span :class="changeArrowCls">{{ card.change > 0 ? '▲' : '▼' }}</span>
+            <span>{{ Math.abs(card.change) }}%</span>
+          </div>
+        </div>
         <div :class="valueRowCls">
           <span :class="valueCls" :style="valueStyle(card.accent)">{{ card.value }}</span>
-          <span v-if="card.change !== undefined" :class="changeBadgeCls" :style="changeBadgeStyle(card.change)">
-            <span :class="changeArrowCls">{{ card.change > 0 ? '↑' : '↓' }}</span>{{ Math.abs(card.change) }}%
-          </span>
         </div>
         <p :class="subCls">{{ card.sub }}</p>
+      </div>
+
+      <!-- 底部数据条 -->
+      <div :class="dataBarCls">
+        <div
+          v-for="i in 7"
+          :key="i"
+          :class="dataBarItemCls"
+          :style="dataBarItemStyle(card.accent, i, hovered === card.key)"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { css } from '@/styled-system/css'
 import type { DashboardStats } from '@/views/dashboard/mock/dashboardData'
 
 const props = defineProps<{ stats: DashboardStats }>()
+const hovered = ref<string | null>(null)
 
 type Accent = 'critical' | 'warning' | 'info' | 'success' | 'none'
 
@@ -54,49 +85,100 @@ const accentColors: Record<Accent, string> = {
   critical: '#ef4444', warning: '#f59e0b', info: '#00d4ff', success: '#10b981', none: '#64748b',
 }
 
-// ---- 动态 style（内联，绕过 Panda 构建时限制） ----
-const cardStyle = (a: Accent) => {
+const accentGlows: Record<Accent, string> = {
+  critical: 'rgba(239,68,68,0.35)', warning: 'rgba(245,158,11,0.35)', info: 'rgba(0,212,255,0.35)', success: 'rgba(16,185,129,0.35)', none: 'rgba(100,116,139,0.2)',
+}
+
+// ---- 动态 style ----
+const cardBgStyle = (a: Accent) => {
   const c = accentColors[a]
-  if (a === 'none') return {
-    background: 'linear-gradient(135deg, rgba(10,18,40,0.9) 0%, rgba(14,24,52,0.85) 100%)',
-    border: '1px solid rgba(255,255,255,0.05)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 24px rgba(0,0,0,0.3)',
-  }
+  const glow = accentGlows[a]
   return {
-    background: 'linear-gradient(135deg, rgba(10,18,40,0.9) 0%, rgba(14,24,52,0.85) 100%)',
-    border: '1px solid rgba(255,255,255,0.05)',
-    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px ${c}20`,
+    background: `linear-gradient(165deg, rgba(10,18,40,0.95) 0%, rgba(14,24,52,0.9) 40%, rgba(8,16,36,0.95) 100%)`,
+    border: a === 'none' ? '1px solid rgba(255,255,255,0.06)' : `1px solid ${c}30`,
+    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.2)`,
+    '--card-accent': c,
+    '--card-glow': glow,
+  } as any
+}
+
+const scanLineStyle = (a: Accent, isHovered: boolean) => {
+  const c = accentColors[a]
+  return {
+    background: `linear-gradient(90deg, transparent, ${c}40, transparent)`,
+    opacity: isHovered ? 1 : 0,
+    animation: isHovered ? 'scan-move 2s linear infinite' : 'none',
   }
 }
 
-const glowOrbStyle = (a: Accent) => {
-  if (a === 'none') return { display: 'none' }
-  return { background: `radial-gradient(circle, ${accentColors[a]}18 0%, transparent 70%)` }
+const cornerStyle = (a: Accent) => {
+  const c = accentColors[a]
+  return { borderColor: a === 'none' ? 'rgba(255,255,255,0.08)' : `${c}50` }
+}
+
+const topBarStyle = (a: Accent) => {
+  const c = accentColors[a]
+  return {
+    background: `linear-gradient(90deg, transparent, ${c}, transparent)`,
+    boxShadow: `0 0 12px ${c}60`,
+  }
 }
 
 const iconWrapStyle = (a: Accent) => {
-  if (a === 'none') return { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }
+  if (a === 'none') return {
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+  }
   const c = accentColors[a]
-  return { background: `${c}18`, border: `1px solid ${c}25`, boxShadow: `0 0 16px ${c}10` }
+  return {
+    background: `${c}12`,
+    border: `1px solid ${c}30`,
+    boxShadow: `0 0 20px ${c}15, inset 0 1px 0 ${c}20`,
+  }
 }
 
 const iconTextStyle = (a: Accent) => {
   if (a === 'none') return { color: '#94a3b8' }
-  return { color: accentColors[a], filter: `drop-shadow(0 0 8px ${accentColors[a]}50)` }
+  const c = accentColors[a]
+  return { color: c, filter: `drop-shadow(0 0 10px ${c}80)` }
+}
+
+const iconRingStyle = (a: Accent) => {
+  if (a === 'none') return { borderColor: 'rgba(255,255,255,0.05)' }
+  const c = accentColors[a]
+  return { borderColor: `${c}25` }
 }
 
 const valueStyle = (a: Accent) => {
   if (a === 'none') return { color: '#e2e8f0' }
   const c = accentColors[a]
-  return { color: '#ffffff', textShadow: `0 0 32px ${c}40, 0 0 8px ${c}20` }
+  return {
+    color: '#ffffff',
+    textShadow: `0 0 40px ${c}50, 0 0 12px ${c}30`,
+  }
 }
 
 const changeBadgeStyle = (change: number) => ({
-  background: change > 0 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+  background: change > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
   color: change > 0 ? '#10b981' : '#ef4444',
+  border: `1px solid ${change > 0 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
 })
 
-// ---- Panda CSS 静态样式（构建时提取） ----
+const dataBarItemStyle = (a: Accent, i: number, isHovered: boolean) => {
+  const heights = [40, 65, 45, 80, 55, 70, 50]
+  const c = accentColors[a]
+  const baseOpacity = a === 'none' ? 0.15 : 0.35
+  const hoverOpacity = a === 'none' ? 0.4 : 0.8
+  return {
+    height: `${heights[i - 1]}%`,
+    background: a === 'none' ? 'rgba(255,255,255,0.5)' : c,
+    opacity: isHovered ? hoverOpacity : baseOpacity,
+    transitionDelay: `${i * 40}ms`,
+  }
+}
+
+// ---- Panda CSS ----
 const stripCls = css({
   display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4', mb: '5', flexShrink: '0',
   '@media (max-width: 1400px)': { gridTemplateColumns: 'repeat(3, 1fr)' },
@@ -104,29 +186,76 @@ const stripCls = css({
 })
 
 const cardBaseCls = css({
-  position: 'relative', overflow: 'hidden', p: '4', borderRadius: 'xl', cursor: 'default',
-  display: 'flex', alignItems: 'flex-start', gap: '3.5',
-  backdropFilter: 'blur(16px)',
-  transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative', overflow: 'hidden', p: '5', borderRadius: 'xl', cursor: 'default',
+  display: 'flex', flexDirection: 'column', gap: '3.5',
+  backdropFilter: 'blur(20px)',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   _hover: {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 12px 40px rgba(0,0,0,0.5) !important',
-    border: '1px solid rgba(255,255,255,0.12) !important',
-    background: 'linear-gradient(135deg, rgba(14,24,54,0.95) 0%, rgba(18,30,60,0.9) 100%) !important',
+    transform: 'translateY(-6px) scale(1.02)',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.3) !important',
+    borderColor: 'var(--card-accent) !important',
   },
 })
 
-const glowOrbCls = css({ position: 'absolute', top: '-40px', right: '-30px', width: '100px', height: '100px', borderRadius: 'full', pointerEvents: 'none', zIndex: '0' })
+const scanLineCls = css({
+  position: 'absolute', top: '0', left: '-100%', width: '60%', height: '100%',
+  pointerEvents: 'none', zIndex: '2', transition: 'opacity 0.3s',
+})
 
-const iconWrapCls = css({ w: '44px', h: '44px', borderRadius: 'xl', flexShrink: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: '1', transition: 'all 0.35s' })
+const cornerTLCls = css({ position: 'absolute', top: '0', left: '0', width: '12px', height: '12px', borderTop: '2px solid', borderLeft: '2px solid', borderTopLeftRadius: '10px', pointerEvents: 'none', zIndex: '3', transition: 'all 0.3s' })
+const cornerTRCls = css({ position: 'absolute', top: '0', right: '0', width: '12px', height: '12px', borderTop: '2px solid', borderRight: '2px solid', borderTopRightRadius: '10px', pointerEvents: 'none', zIndex: '3', transition: 'all 0.3s' })
+const cornerBLCls = css({ position: 'absolute', bottom: '0', left: '0', width: '12px', height: '12px', borderBottom: '2px solid', borderLeft: '2px solid', borderBottomLeftRadius: '10px', pointerEvents: 'none', zIndex: '3', transition: 'all 0.3s' })
+const cornerBRCls = css({ position: 'absolute', bottom: '0', right: '0', width: '12px', height: '12px', borderBottom: '2px solid', borderRight: '2px solid', borderBottomRightRadius: '10px', pointerEvents: 'none', zIndex: '3', transition: 'all 0.3s' })
 
-const iconTextCls = css({ fontSize: '20px', transition: 'all 0.35s' })
+const gridBgCls = css({
+  position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '0',
+  backgroundImage: 'linear-gradient(rgba(0,212,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.02) 1px, transparent 1px)',
+  backgroundSize: '20px 20px',
+  maskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%)',
+  WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 70%)',
+})
+
+const topBarCls = css({ position: 'absolute', top: '0', left: '10%', right: '10%', height: '1.5px', borderRadius: 'full', pointerEvents: 'none', zIndex: '3' })
+
+const iconWrapCls = css({
+  w: '48px', h: '48px', borderRadius: 'xl', flexShrink: '0',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  position: 'relative', zIndex: '1', transition: 'all 0.4s',
+})
+
+const iconTextCls = css({ fontSize: '22px', transition: 'all 0.4s', position: 'relative', zIndex: '2' })
+
+const iconRingCls = css({
+  position: 'absolute', inset: '-4px', borderRadius: 'xl', border: '1px solid',
+  animation: 'icon-pulse 3s ease-in-out infinite',
+})
 
 const bodyCls = css({ flex: '1', minW: '0', position: 'relative', zIndex: '1' })
-const labelCls = css({ fontSize: '11px', fontWeight: '600', letterSpacing: '0.07em', textTransform: 'uppercase', color: 'slate.400', mb: '1' })
-const valueRowCls = css({ display: 'flex', alignItems: 'baseline', gap: '2', mb: '1' })
-const valueCls = css({ fontSize: '28px', fontWeight: '700', fontFamily: 'mono', letterSpacing: '-0.03em', lineHeight: '1.15' })
-const subCls = css({ fontSize: '11px', color: 'slate.500' })
-const changeBadgeCls = css({ display: 'inline-flex', alignItems: 'center', gap: '1', fontSize: '12px', fontWeight: '600', fontFamily: 'mono', px: '2', py: '0.5', borderRadius: 'md' })
-const changeArrowCls = css({ fontSize: '10px' })
+const labelRowCls = css({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '1.5' })
+const labelCls = css({ fontSize: '11px', fontWeight: '600', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'slate.400' })
+const valueRowCls = css({ display: 'flex', alignItems: 'baseline', gap: '2', mb: '1.5' })
+const valueCls = css({ fontSize: '32px', fontWeight: '800', fontFamily: 'mono', letterSpacing: '-0.04em', lineHeight: '1.1', transition: 'all 0.3s' })
+const subCls = css({ fontSize: '11px', color: 'slate.500', letterSpacing: '0.02em' })
+const changeBadgeCls = css({ display: 'inline-flex', alignItems: 'center', gap: '1', fontSize: '11px', fontWeight: '700', fontFamily: 'mono', px: '2', py: '0.5', borderRadius: 'md', transition: 'all 0.3s' })
+const changeArrowCls = css({ fontSize: '9px' })
+
+const dataBarCls = css({
+  display: 'flex', alignItems: 'flex-end', gap: '3px', height: '24px',
+  position: 'relative', zIndex: '1', mt: '1',
+})
+
+const dataBarItemCls = css({
+  flex: '1', borderRadius: '1px', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+})
 </script>
+
+<style scoped>
+@keyframes scan-move {
+  0% { left: -60%; }
+  100% { left: 100%; }
+}
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+</style>
