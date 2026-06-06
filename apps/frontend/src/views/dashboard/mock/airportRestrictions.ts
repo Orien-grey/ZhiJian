@@ -61,6 +61,7 @@ export const MOCK_TIMELINE: TimelineAlert[] = [
   { id:'t30', time:'23:15', icao:'ZBTJ', severity:'info', summary:'除冰检查' },
   { id:'t31', time:'23:50', icao:'ZUUU', severity:'warning', summary:'02L 不可起飞' },
   { id:'t32', time:'00:40', icao:'ZHHH', severity:'info', summary:'新停机位启用' },
+  { id:'t33', time:'01:20', icao:'ZWWW', severity:'warning', summary:'跑道改造' },
 ]
 
 // ---- 机场限制表格（15 个机场，全天分布） ----
@@ -69,6 +70,7 @@ export const MOCK_AIRPORT_RESTRICTIONS: AirportRestriction[] = [
     { id:'r1', type:'runway_closed', startHour:7, endHour:10.5, label:'18R/36L 跑道关闭', notamRef:'A2253/26' },
     { id:'r2', type:'taxiway_closed', startHour:14, endHour:18, label:'TWY A 关闭', notamRef:'A2261/26' },
     { id:'r3', type:'runway_no_land', startHour:20, endHour:23.5, label:'18R 不可着陆', notamRef:'A2300/26' },
+    { id:'r38', type:'runway_no_takeoff', startHour:25, endHour:29, label:'36L 不可起飞', notamRef:'A2601/26' },
   ]},
   { icao:'ZSAM', airportName:'厦门高崎', restrictions:[
     { id:'r4', type:'runway_no_takeoff', startHour:6, endHour:9, label:'05/23 不可起飞', notamRef:'A2263/26' },
@@ -93,6 +95,7 @@ export const MOCK_AIRPORT_RESTRICTIONS: AirportRestriction[] = [
     { id:'r13', type:'runway_no_takeoff', startHour:6.5, endHour:10, label:'02L 不可起飞', notamRef:'A2256/26' },
     { id:'r14', type:'taxiway_closed', startHour:15, endHour:18.5, label:'TWY D 关闭', notamRef:'A2256/26' },
     { id:'r15', type:'airport_no_land', startHour:23, endHour:26, label:'机场不可着陆', notamRef:'A2304/26' },
+    { id:'r40', type:'runway_closed', startHour:26, endHour:30, label:'02R/20L 跑道关闭', notamRef:'A2603/26' },
   ]},
   { icao:'ZLXY', airportName:'西安咸阳', restrictions:[
     { id:'r16', type:'runway_no_land', startHour:10, endHour:14, label:'05/23 不可着陆', notamRef:'A2259/26' },
@@ -104,6 +107,7 @@ export const MOCK_AIRPORT_RESTRICTIONS: AirportRestriction[] = [
   { icao:'ZSPD', airportName:'上海浦东', restrictions:[
     { id:'r19', type:'airport_no_land', startHour:17, endHour:22, label:'机场不可着陆', notamRef:'A2288/26' },
     { id:'r20', type:'runway_no_takeoff', startHour:8, endHour:12, label:'16L/34R 不可起飞', notamRef:'A2288/26' },
+    { id:'r39', type:'airport_no_alternate', startHour:24, endHour:28.5, label:'机场不可备降', notamRef:'A2602/26' },
   ]},
   { icao:'ZSHC', airportName:'杭州萧山', restrictions:[
     { id:'r21', type:'runway_no_takeoff', startHour:14, endHour:18, label:'07/25 不可起飞', notamRef:'A2289/26' },
@@ -122,7 +126,22 @@ export const MOCK_AIRPORT_RESTRICTIONS: AirportRestriction[] = [
   { icao:'ZJHK', airportName:'海口美兰', restrictions:[
     { id:'r27', type:'airport_closed', startHour:19, endHour:25, label:'台风关闭', notamRef:'A2291/26' },
   ]},
+  { icao:'ZWWW', airportName:'乌鲁木齐天山', restrictions:[
+    { id:'r28', type:'runway_closed', startHour:8, endHour:20, label:'07/25 跑道改造关闭', notamRef:'A2310/26' },
+    { id:'r29', type:'taxiway_closed', startHour:6, endHour:18, label:'A3 联络道关闭', notamRef:'A2311/26' },
+  ]},
+  // ---- 夜间/次日限制（00:00-08:00，共用机场条） ----
+  { icao:'ZGSZ', airportName:'深圳宝安', restrictions:[
+    { id:'r30', type:'airport_closed', startHour:24.5, endHour:28, label:'夜间施工关闭', notamRef:'A2501/26' },
+  ]},
+  { icao:'ZSNJ', airportName:'南京禄口', restrictions:[
+    { id:'r31', type:'runway_no_land', startHour:25, endHour:29, label:'06/24 不可着陆', notamRef:'A2502/26' },
+    { id:'r32', type:'taxiway_closed', startHour:28, endHour:31.5, label:'TWY A 除冰', notamRef:'A2503/26' },
+  ]},
+  { icao:'ZHHH', airportName:'武汉天河', restrictions:[
+    { id:'r33', type:'runway_closed', startHour:23.5, endHour:27, label:'04L/22R 跑道关闭', notamRef:'A2504/26' },
+  ]},
 ]
 
-// 时间范围：早晨 6 点到次日凌晨 2 点
-export const TIME_RANGE = { start: 6, end: 26 }
+// 时间范围：早晨 6 点到次日早晨 8 点
+export const TIME_RANGE = { start: 6, end: 32 }

@@ -247,5 +247,9 @@ export const MOCK_MAP_STATS: MapStats = {
     { name: '俄罗斯', count: 6 },
     { name: '哈萨克', count: 3 },
     { name: '日本', count: 4 },
+    { name: '韩国', count: 3 },
+    { name: '印度', count: 5 },
+    { name: '越南', count: 2 },
+    { name: '蒙古', count: 1 },
   ],
 }

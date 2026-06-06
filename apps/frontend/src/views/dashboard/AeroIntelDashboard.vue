@@ -48,17 +48,18 @@
 
         <!-- 三栏内容区 -->
         <div class="command-body">
-          <!-- 左侧：机场限制信息 -->
+          <!-- 左侧面板（absolute 定位，展开时丝滑拉宽覆盖地图） -->
           <div
             class="panel-left"
-            :class="{ collapsed: !leftExpanded }"
-            :style="{ width: leftExpanded ? (leftWide ? '640px' : '320px') : '48px' }"
+            :class="{
+              collapsed: !leftExpanded,
+              wide: expandOverlay,
+            }"
           >
-            <AirportRestrictions v-if="leftExpanded" :expanded="leftWide" @toggle-expand="toggleLeftWide" @filter-change="onFilterChange" @bar-click="(icao:string) => detailIcao = icao" />
+            <AirportRestrictions v-if="leftExpanded" :expanded="expandOverlay" @toggle-expand="expandOverlay = !expandOverlay" @filter-change="onFilterChange" @bar-click="onBarClick" />
             <div v-else class="left-icon-only">
               <button class="icon-only-btn" @click="leftExpanded = true" title="展开面板">◫</button>
             </div>
-            <!-- 折叠按钮：展开态时显示在面板右边缘内侧，收起态时显示在窄条右边缘 -->
             <button
               class="panel-collapse-btn"
               :class="{ 'collapsed': !leftExpanded }"
@@ -69,24 +70,24 @@
             </button>
           </div>
 
-          <!-- 中间：核心地图 -->
+          <!-- 中间：核心地图（paddingLeft 给左面板留位，面板拉宽不影响地图） -->
           <div class="panel-center">
-            <MapCore :filters="mapFilters" :key="filterKey" @airport-click="(icao:string) => detailIcao = icao" />
+            <MapCore :filters="mapFilters" :key="filterKey" @airport-click="onBarClick" />
+
+            <!-- 机场详情覆盖层 -->
+            <AirportDetailPanel v-if="detailIcao" :icao="detailIcao" @close="detailIcao = null" />
+
+            <!-- 航班分析覆盖层 -->
+            <FlightAnalysisPanel v-if="analysisFlightNo" :flight-no="analysisFlightNo" @close="analysisFlightNo = null" />
           </div>
 
           <!-- 右侧：航班动态 -->
           <div class="panel-right">
-            <FlightDynamics @flight-click="analysisFlightNo = $event" />
+            <FlightDynamics @flight-click="(no:string) => { expandOverlay = false; analysisFlightNo = no }" />
           </div>
         </div>
       </div>
     </main>
-
-    <!-- 机场详情弹窗 -->
-    <AirportDetail :visible="!!detailIcao" :icao="detailIcao || ''" @close="detailIcao = null" />
-
-    <!-- 航班受影响分析弹窗 -->
-    <FlightAnalysisModal :visible="!!analysisFlightNo" :flight-no="analysisFlightNo || ''" @close="analysisFlightNo = null" @preview-route="onPreviewRoute" />
   </div>
 </template>
 
@@ -99,16 +100,21 @@ import TopStatusBar from '@/components/dashboard/TopStatusBar.vue'
 import AirportRestrictions from '@/components/dashboard/AirportRestrictions.vue'
 import MapCore from '@/components/dashboard/MapCore.vue'
 import FlightDynamics from '@/components/dashboard/FlightDynamics.vue'
-import AirportDetail from '@/components/dashboard/AirportDetail.vue'
-import FlightAnalysisModal from '@/components/dashboard/FlightAnalysisModal.vue'
+import AirportDetailPanel from '@/components/dashboard/AirportDetailPanel.vue'
+import FlightAnalysisPanel from '@/components/dashboard/FlightAnalysisPanel.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 
 const activeTime = ref<'today' | 'tomorrow' | 'both'>('today')
 const leftExpanded = ref(true)
-const leftWide = ref(false)
+const expandOverlay = ref(false)
 const sidebarCollapsed = ref(true)
+
+const onBarClick = (icao: string) => {
+  expandOverlay.value = false  // 收起展开抽屉
+  detailIcao.value = icao      // 打开机场详情
+}
 
 // 地图内容过滤（共享状态 — 用 ref 包装整个对象确保引用变化）
 const filterKey = ref(0)
@@ -117,8 +123,6 @@ const mapFilters = ref({
 })
 const detailIcao = ref<string | null>(null)
 const analysisFlightNo = ref<string | null>(null)
-
-const toggleLeftWide = () => { leftWide.value = !leftWide.value }
 
 const onFilterChange = (key: string, val: boolean) => {
   const map: Record<string, string> = {
@@ -130,10 +134,6 @@ const onFilterChange = (key: string, val: boolean) => {
     mapFilters.value = { ...mapFilters.value, [k]: val }
     filterKey.value++
   }
-}
-
-const onPreviewRoute = (routeId: string, flightNo: string) => {
-  // 预览备选航线在地图上的轨迹（后续接入 MapCore）
 }
 
 const handleLogout = async () => {
@@ -332,100 +332,54 @@ const handleLogout = async () => {
   min-height: 0;
 }
 
-/* ---- 左侧面板 ---- */
+/* ---- 左侧面板（absolute，展开时丝滑拉宽盖地图） ---- */
 .panel-left {
-  flex-shrink: 0;
-  position: relative;
-  border-right: 1px solid rgba(0, 212, 255, 0.06);
-  background: rgba(8, 14, 32, 0.6);
-  backdrop-filter: blur(8px);
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
+  position: absolute; left: 0; top: 0; bottom: 0; z-index: 25;
+  width: 320px;
+  display: flex; flex-direction: column;
+  border-right: 1px solid rgba(0,212,255,0.12);
+  background: rgba(8,14,32,0.92); backdrop-filter: blur(12px);
+  transition: width 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  overflow: hidden;
 }
-
-.panel-left.collapsed {
-  width: 48px;
-}
+.panel-left.collapsed { width: 48px; }
+.panel-left.wide { width: 72vw; min-width: 680px; box-shadow: 8px 0 60px rgba(0,0,0,0.6); }
 
 .left-icon-only {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 16px;
-  gap: 16px;
+  display: flex; flex-direction: column; align-items: center;
+  padding-top: 16px; gap: 16px;
 }
-
 .icon-only-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 212, 255, 0.1);
-  background: transparent;
-  color: #00d4ff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: all 0.2s;
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 1px solid rgba(0,212,255,0.1); background: transparent;
+  color: #00d4ff; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; font-size: 16px; transition: all 0.2s;
 }
+.icon-only-btn:hover { background: rgba(0,212,255,0.1); }
 
-.icon-only-btn:hover {
-  background: rgba(0, 212, 255, 0.1);
-}
-
-/* 折叠/展开按钮（面板右边缘内侧） */
 .panel-collapse-btn {
-  position: absolute;
-  top: 8px;
-  right: 6px;
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
-  border: 1px solid rgba(0, 212, 255, 0.12);
-  background: rgba(10, 18, 40, 0.85);
-  color: #00d4ff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  z-index: 20;
-  transition: all 0.2s;
-  backdrop-filter: blur(6px);
+  position: absolute; top: 8px; right: 6px; width: 24px; height: 24px;
+  border-radius: 5px; border: 1px solid rgba(0,212,255,0.12);
+  background: rgba(10,18,40,0.85); color: #00d4ff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; z-index: 20; transition: all 0.2s; backdrop-filter: blur(6px);
 }
+.panel-collapse-btn.collapsed { right: 4px; top: 50%; transform: translateY(-50%); width: 20px; height: 40px; }
+.panel-collapse-btn:hover { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.3); }
 
-.panel-collapse-btn.collapsed {
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 40px;
-}
-
-.panel-collapse-btn:hover {
-  background: rgba(0, 212, 255, 0.12);
-  border-color: rgba(0, 212, 255, 0.3);
-}
-
-/* ---- 中间地图 ---- */
+/* ---- 中间地图（全宽占满，左右面板浮动覆盖） ---- */
 .panel-center {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s ease;
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  position: relative;
 }
 
-/* ---- 右侧面板 ---- */
+/* ---- 右侧面板（absolute 覆盖地图右侧） ---- */
 .panel-right {
+  position: absolute; right: 0; top: 0; bottom: 0; z-index: 25;
   width: 360px;
-  flex-shrink: 0;
-  border-left: 1px solid rgba(0, 212, 255, 0.06);
-  background: rgba(8, 14, 32, 0.6);
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
+  border-left: 1px solid rgba(0,212,255,0.12);
+  background: rgba(8,14,32,0.92); backdrop-filter: blur(12px);
+  display: flex; flex-direction: column;
 }
 </style>
