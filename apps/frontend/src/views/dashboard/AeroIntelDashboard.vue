@@ -49,7 +49,7 @@
         <!-- 三栏内容区 -->
         <div class="command-body">
           <!-- 左侧：机场限制信息 -->
-          <div class="panel-left" :class="{ collapsed: !leftExpanded }">
+          <div class="panel-left" :class="{ collapsed: !leftExpanded }" :style="{ width: leftExpanded ? leftWidth + 'px' : '48px' }">
             <AirportRestrictions v-if="leftExpanded" />
             <div v-else class="left-icon-only">
               <button class="icon-only-btn" @click="leftExpanded = true" title="展开面板">◫</button>
@@ -59,13 +59,19 @@
             </button>
           </div>
 
+          <!-- 左拖拽手柄 -->
+          <div v-if="leftExpanded" class="resize-handle" @mousedown="startDrag('left', $event)" />
+
           <!-- 中间：核心地图 -->
           <div class="panel-center">
             <MapCore />
           </div>
 
+          <!-- 右拖拽手柄 -->
+          <div class="resize-handle" @mousedown="startDrag('right', $event)" />
+
           <!-- 右侧：航班动态 -->
-          <div class="panel-right">
+          <div class="panel-right" :style="{ width: rightWidth + 'px' }">
             <FlightDynamics />
           </div>
         </div>
@@ -90,6 +96,40 @@ const auth = useAuthStore()
 const activeTime = ref<'today' | 'tomorrow' | 'both'>('today')
 const leftExpanded = ref(true)
 const sidebarCollapsed = ref(true)
+const leftWidth = ref(320)
+const rightWidth = ref(360)
+
+// 拖拽调整面板宽度
+let dragging: 'left' | 'right' | null = null
+let startX = 0
+let startWidth = 0
+
+const startDrag = (side: 'left' | 'right', e: MouseEvent) => {
+  dragging = side
+  startX = e.clientX
+  startWidth = side === 'left' ? leftWidth.value : rightWidth.value
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+const onDrag = (e: MouseEvent) => {
+  if (!dragging) return
+  const delta = e.clientX - startX
+  const newWidth = startWidth + (dragging === 'left' ? delta : -delta)
+  const clamped = Math.max(200, Math.min(600, newWidth))
+  if (dragging === 'left') leftWidth.value = clamped
+  else rightWidth.value = clamped
+}
+
+const stopDrag = () => {
+  dragging = null
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
 
 const handleLogout = async () => {
   await auth.logout()
@@ -288,9 +328,23 @@ const handleLogout = async () => {
   min-height: 0;
 }
 
+/* ---- 拖拽手柄 ---- */
+.resize-handle {
+  width: 4px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.2s;
+  position: relative;
+  z-index: 15;
+}
+.resize-handle:hover,
+.resize-handle:active {
+  background: rgba(0, 212, 255, 0.2);
+}
+
 /* ---- 左侧面板 ---- */
 .panel-left {
-  width: 320px;
   flex-shrink: 0;
   position: relative;
   border-right: 1px solid rgba(0, 212, 255, 0.06);
@@ -370,7 +424,6 @@ const handleLogout = async () => {
 
 /* ---- 右侧面板 ---- */
 .panel-right {
-  width: 360px;
   flex-shrink: 0;
   border-left: 1px solid rgba(0, 212, 255, 0.06);
   background: rgba(8, 14, 32, 0.6);
