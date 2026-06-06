@@ -59,6 +59,73 @@ export const MOCK_AIRPORT_NOTAMS: Record<string, AirportNotam[]> = {
     { id:'n19', ref:'A2288/26', type:'replace', startDate:'2026-06-04', endDate:'2026-06-24', summary:'16L/34R 不可起飞，16R/34L 正常', affectedFacility:'RWY 16L/34R', priority:'A' },
     { id:'n20', ref:'A2289/26', type:'new', startDate:'2026-06-10', endDate:'2026-06-20', summary:'机场不可着陆（夜间灯光维护）', affectedFacility:'所有跑道', priority:'A' },
   ],
+  ZLXY: [
+    { id:'n21', ref:'A2259/26', type:'replace', startDate:'2026-06-02', endDate:'2026-06-18', summary:'05/23 不可着陆，06/24 正常使用', affectedFacility:'RWY 05/23', priority:'A' },
+    { id:'n22', ref:'A2305/26', type:'new', startDate:'2026-06-06', endDate:'2026-06-22', summary:'05 跑道关闭进行ILS校准', affectedFacility:'RWY 05', priority:'A' },
+    { id:'n23', ref:'M5100/26', type:'new', startDate:'2026-06-01', endDate:'2026-06-30', summary:'停机坪东区重新划线，部分机位关闭', affectedFacility:'东区停机坪', priority:'M' },
+  ],
+  ZUCK: [
+    { id:'n24', ref:'A2258/26', type:'replace', startDate:'2026-06-03', endDate:'2026-06-19', summary:'滑行道 C 关闭进行道面修复', affectedFacility:'TWY C', priority:'B' },
+    { id:'n25', ref:'A2303/26', type:'new', startDate:'2026-06-07', endDate:'2026-06-25', summary:'02R 不可用于起飞（灯光系统升级）', affectedFacility:'RWY 02R', priority:'A' },
+  ],
+  ZHCC: [
+    { id:'n26', ref:'A2260/26', type:'replace', startDate:'2026-06-01', endDate:'2026-06-20', summary:'12R/30L 跑道关闭进行定期维护', affectedFacility:'RWY 12R/30L', priority:'A' },
+    { id:'n27', ref:'A2306/26', type:'new', startDate:'2026-06-05', endDate:'2026-06-26', summary:'机场不可用于备降（雷达升级）', affectedFacility:'机场全区域', priority:'A' },
+    { id:'n28', ref:'B4100/26', type:'new', startDate:'2026-06-03', endDate:'2026-06-17', summary:'VOR/DME CGO 频率检查，可能短时中断', affectedFacility:'CGO VOR/DME', priority:'B' },
+  ],
+  ZSAM: [
+    { id:'n29', ref:'A2263/26', type:'replace', startDate:'2026-06-02', endDate:'2026-06-16', summary:'05/23 不可用于起飞（PAPI校准）', affectedFacility:'RWY 05/23', priority:'A' },
+    { id:'n30', ref:'A2301/26', type:'new', startDate:'2026-06-04', endDate:'2026-06-20', summary:'滑行道 B 因排水工程关闭', affectedFacility:'TWY B', priority:'B' },
+  ],
+  ZSHC: [
+    { id:'n31', ref:'A2289/26', type:'replace', startDate:'2026-06-05', endDate:'2026-06-21', summary:'07/25 不可用于起飞（道面检查）', affectedFacility:'RWY 07/25', priority:'A' },
+    { id:'n32', ref:'B3300/26', type:'new', startDate:'2026-06-08', endDate:'2026-06-28', summary:'RNAV进近程序更新，新航图生效', affectedFacility:'所有RNAV程序', priority:'B' },
+  ],
+  ZBTJ: [
+    { id:'n33', ref:'A2261/26', type:'replace', startDate:'2026-06-01', endDate:'2026-06-15', summary:'16R/34L 跑道关闭（除冰设备测试）', affectedFacility:'RWY 16R/34L', priority:'A' },
+    { id:'n34', ref:'M2800/26', type:'new', startDate:'2026-06-10', endDate:'2026-07-10', summary:'APU测试区迁移至东侧', affectedFacility:'东侧测试区', priority:'M' },
+  ],
+  ZYTX: [
+    { id:'n35', ref:'A2290/26', type:'replace', startDate:'2026-06-03', endDate:'2026-06-18', summary:'机场不可用于起飞（跑道摩擦系数测试）', affectedFacility:'所有跑道', priority:'A' },
+    { id:'n36', ref:'B2500/26', type:'new', startDate:'2026-06-06', endDate:'2026-06-20', summary:'NDB TX 维护停用，使用VOR替代', affectedFacility:'TX NDB', priority:'B' },
+  ],
+  ZPPP: [
+    { id:'n37', ref:'A2268/26', type:'replace', startDate:'2026-06-01', endDate:'2026-06-16', summary:'机场关闭进行应急演练', affectedFacility:'机场全区域', priority:'A' },
+    { id:'n38', ref:'A2307/26', type:'new', startDate:'2026-06-05', endDate:'2026-06-22', summary:'03/21 不可用于起飞（高原性能验证）', affectedFacility:'RWY 03/21', priority:'A' },
+    { id:'n39', ref:'C1900/26', type:'new', startDate:'2026-06-08', endDate:'2026-06-18', summary:'高空温度异常，注意发动机性能衰减', affectedFacility:'全空域', priority:'B' },
+  ],
+  ZJHK: [
+    { id:'n40', ref:'A2291/26', type:'replace', startDate:'2026-06-02', endDate:'2026-06-25', summary:'台风天气，机场关闭至次日01:00', affectedFacility:'机场全区域', priority:'A' },
+    { id:'n41', ref:'B1800/26', type:'new', startDate:'2026-06-05', endDate:'2026-06-15', summary:'ILS 09 下滑道异常，降至CAT I标准', affectedFacility:'ILS 09', priority:'B' },
+  ],
+  ZGSZ: [
+    { id:'n42', ref:'A2501/26', type:'new', startDate:'2026-06-05', endDate:'2026-06-28', summary:'夜间施工关闭，00:30-04:00不可用', affectedFacility:'机场全区域', priority:'A' },
+    { id:'n43', ref:'B4400/26', type:'replace', startDate:'2026-06-03', endDate:'2026-06-13', summary:'ATIS频率变更 127.80→127.95', affectedFacility:'ATIS', priority:'B' },
+  ],
+  ZSNJ: [
+    { id:'n44', ref:'A2502/26', type:'new', startDate:'2026-06-04', endDate:'2026-06-24', summary:'06/24 不可着陆（NDB进近程序停用）', affectedFacility:'RWY 06/24', priority:'A' },
+    { id:'n45', ref:'A2503/26', type:'replace', startDate:'2026-06-06', endDate:'2026-06-20', summary:'滑行道 A 除冰作业，夜间关闭', affectedFacility:'TWY A', priority:'B' },
+    { id:'n46', ref:'C3500/26', type:'new', startDate:'2026-06-07', endDate:'2026-06-14', summary:'空军活动，西侧空域限制通行', affectedFacility:'西侧空域', priority:'B' },
+  ],
+  ZHHH: [
+    { id:'n47', ref:'A2504/26', type:'replace', startDate:'2026-06-01', endDate:'2026-06-19', summary:'04L/22R 跑道关闭（道面重铺）', affectedFacility:'RWY 04L/22R', priority:'A' },
+    { id:'n48', ref:'M6200/26', type:'new', startDate:'2026-06-05', endDate:'2026-07-05', summary:'新增RNAV AR进近程序试运行', affectedFacility:'RNAV AR程序', priority:'M' },
+  ],
+  ZSJN: [
+    { id:'n49', ref:'A2272/26', type:'replace', startDate:'2026-06-02', endDate:'2026-06-18', summary:'机场关闭进行跑道延长施工', affectedFacility:'机场全区域', priority:'A' },
+    { id:'n50', ref:'B2900/26', type:'new', startDate:'2026-06-04', endDate:'2026-06-14', summary:'VOR/DME JN 维护，使用GPS替代', affectedFacility:'JN VOR/DME', priority:'B' },
+  ],
+  ZUGY: [
+    { id:'n51', ref:'A2404/26', type:'replace', startDate:'2026-06-03', endDate:'2026-06-16', summary:'机场夜间关闭施工，02:00-05:30', affectedFacility:'机场全区域', priority:'A' },
+    { id:'n52', ref:'A2405/26', type:'new', startDate:'2026-06-06', endDate:'2026-06-20', summary:'01L/19R 不可着陆（高原减载要求）', affectedFacility:'RWY 01L/19R', priority:'A' },
+  ],
+  ZLLL: [
+    { id:'n53', ref:'A2402/26', type:'replace', startDate:'2026-06-04', endDate:'2026-06-18', summary:'18/36 不可起飞（道面摩擦不足）', affectedFacility:'RWY 18/36', priority:'A' },
+    { id:'n54', ref:'A2403/26', type:'new', startDate:'2026-06-07', endDate:'2026-06-28', summary:'机场不可备降（高海拔减载）', affectedFacility:'机场全区域', priority:'A' },
+  ],
+  ZBNY: [
+    { id:'n55', ref:'A2407/26', type:'replace', startDate:'2026-06-01', endDate:'2026-06-14', summary:'机场夜间关闭，03:00-05:30不可用', affectedFacility:'机场全区域', priority:'A' },
+  ],
 }
 
 // ==================== 通信导航设施 ====================

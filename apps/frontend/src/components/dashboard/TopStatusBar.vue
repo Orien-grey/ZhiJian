@@ -44,8 +44,8 @@ const timeButtons = [
 <style scoped>
 .topbar {
   display: flex; align-items: center; height: 48px; flex-shrink: 0;
-  background: rgba(8,14,32,0.95); border-bottom: 1px solid rgba(0,212,255,0.08);
-  padding: 0 16px; gap: 20px;
+  background: rgba(8,14,32,0.95); border-bottom: 1px solid rgba(0,212,255,0.07);
+  padding: 0 15px; gap: 20px;
 }
 .top-left { display: flex; align-items: center; gap: 10px; }
 .logo { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; }
@@ -56,13 +56,13 @@ const timeButtons = [
 .cycle-label { font-size: 11px; color: #64748b; font-family: 'IBM Plex Mono', monospace; }
 .cycle-label::first-line { color: #64748b; }
 .cycle-value { font-size: 11px; font-weight: 600; color: #00d4ff; font-family: 'IBM Plex Mono', monospace; }
-.cycle-divider { color: rgba(0,212,255,0.12); font-size: 12px; }
+.cycle-divider { color: rgba(0,212,255,0.11); font-size: 12px; }
 
 .top-right { display: flex; align-items: center; }
 .time-btns { display: flex; }
 .tb {
   padding: 4px 14px; font-size: 11px; cursor: pointer;
-  background: none; color: #64748b; border: 1px solid rgba(255,255,255,0.05);
+  background: none; color: #64748b; border: 1px solid rgba(255,255,255,0.04);
   transition: all 0.2s; font-family: monospace;
 }
 .tb:first-child { border-radius: 4px 0 0 4px; }
@@ -70,7 +70,7 @@ const timeButtons = [
 .tb:hover { color: #00d4ff; border-color: rgba(0,212,255,0.2); }
 .tb-active {
   padding: 4px 14px; font-size: 11px; cursor: pointer;
-  background: rgba(0,212,255,0.12); color: #00d4ff; font-weight: 600;
+  background: rgba(0,212,255,0.11); color: #00d4ff; font-weight: 600;
   border: 1px solid rgba(0,212,255,0.3); font-family: monospace;
 }
 .tb-active:first-child { border-radius: 4px 0 0 4px; }
