@@ -49,22 +49,32 @@
         <!-- 三栏内容区 -->
         <div class="command-body">
           <!-- 左侧：机场限制信息 -->
-          <div class="panel-left" :class="{ collapsed: !leftExpanded }" :style="{ width: leftExpanded ? leftWidth + 'px' : '48px' }">
-            <AirportRestrictions v-if="leftExpanded" />
+          <div
+            class="panel-left"
+            :class="{ collapsed: !leftExpanded }"
+            :style="{ width: leftExpanded ? currentLeftWidth + 'px' : '48px' }"
+          >
+            <AirportRestrictions v-if="leftExpanded" :expanded="leftWide" @toggle-expand="toggleLeftWide" @filter-change="onFilterChange" />
             <div v-else class="left-icon-only">
               <button class="icon-only-btn" @click="leftExpanded = true" title="展开面板">◫</button>
             </div>
-            <button class="panel-collapse-btn" @click="leftExpanded = !leftExpanded" :title="leftExpanded ? '收起面板' : '展开面板'">
+            <!-- 折叠按钮：展开态时显示在面板右边缘内侧，收起态时显示在窄条右边缘 -->
+            <button
+              class="panel-collapse-btn"
+              :class="{ 'collapsed': !leftExpanded }"
+              @click="leftExpanded = !leftExpanded"
+              :title="leftExpanded ? '收起面板' : '展开面板'"
+            >
               <span>{{ leftExpanded ? '◁' : '▷' }}</span>
             </button>
           </div>
 
-          <!-- 左拖拽手柄 -->
+          <!-- 左拖拽手柄（仅展开态显示） -->
           <div v-if="leftExpanded" class="resize-handle" @mousedown="startDrag('left', $event)" />
 
           <!-- 中间：核心地图 -->
           <div class="panel-center">
-            <MapCore />
+            <MapCore :filters="mapFilters" :key="filterKey" />
           </div>
 
           <!-- 右拖拽手柄 -->
@@ -81,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
@@ -95,9 +105,33 @@ const auth = useAuthStore()
 
 const activeTime = ref<'today' | 'tomorrow' | 'both'>('today')
 const leftExpanded = ref(true)
+const leftWide = ref(false)
 const sidebarCollapsed = ref(true)
+
+// 地图内容过滤（共享状态 — 用 ref 包装整个对象确保引用变化）
+const filterKey = ref(0)
+const mapFilters = ref({
+  prohibited: true, restricted: true, waypoints: true, routes: true, airports: true,
+})
 const leftWidth = ref(320)
 const rightWidth = ref(360)
+
+// 当前左侧宽度：展开 640 时用 640，否则用拖拽宽度
+const currentLeftWidth = computed(() => leftWide.value ? 640 : leftWidth.value)
+
+const toggleLeftWide = () => { leftWide.value = !leftWide.value }
+
+const onFilterChange = (key: string, val: boolean) => {
+  const map: Record<string, string> = {
+    '禁航通告': 'prohibited', '限制区': 'restricted', '航路点 / 导航台': 'waypoints', '航路': 'routes', '运行机场': 'airports',
+  }
+  const k = map[key]
+  if (k) {
+    // 替换整个对象确保引用变化，触发 MapCore 重渲染
+    mapFilters.value = { ...mapFilters.value, [k]: val }
+    filterKey.value++
+  }
+}
 
 // 拖拽调整面板宽度
 let dragging: 'left' | 'right' | null = null
@@ -283,15 +317,14 @@ const handleLogout = async () => {
   flex-direction: column;
 }
 
-/* 收起侧边栏按钮 */
+/* 收起侧边栏按钮（顶部区域，避免和面板折叠按钮重叠） */
 .sidebar-toggle-btn {
   position: absolute;
-  top: 50%;
+  top: 56px;
   left: 0;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 56px;
-  border-radius: 0 6px 6px 0;
+  width: 18px;
+  height: 40px;
+  border-radius: 0 5px 5px 0;
   border: 1px solid rgba(0, 212, 255, 0.1);
   border-left: none;
   background: rgba(10, 18, 40, 0.85);
@@ -300,7 +333,7 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   z-index: 10;
   transition: all 0.2s;
   backdrop-filter: blur(6px);
@@ -386,17 +419,16 @@ const handleLogout = async () => {
   background: rgba(0, 212, 255, 0.1);
 }
 
-/* 折叠/展开按钮 */
+/* 折叠/展开按钮（面板右边缘内侧） */
 .panel-collapse-btn {
   position: absolute;
-  top: 50%;
-  right: -12px;
-  transform: translateY(-50%);
+  top: 8px;
+  right: 6px;
   width: 24px;
-  height: 48px;
-  border-radius: 6px;
+  height: 24px;
+  border-radius: 5px;
   border: 1px solid rgba(0, 212, 255, 0.12);
-  background: rgba(10, 18, 40, 0.9);
+  background: rgba(10, 18, 40, 0.85);
   color: #00d4ff;
   cursor: pointer;
   display: flex;
@@ -406,6 +438,14 @@ const handleLogout = async () => {
   z-index: 20;
   transition: all 0.2s;
   backdrop-filter: blur(6px);
+}
+
+.panel-collapse-btn.collapsed {
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 40px;
 }
 
 .panel-collapse-btn:hover {
