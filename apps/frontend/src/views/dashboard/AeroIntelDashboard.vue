@@ -52,9 +52,9 @@
           <div
             class="panel-left"
             :class="{ collapsed: !leftExpanded }"
-            :style="{ width: leftExpanded ? currentLeftWidth + 'px' : '48px' }"
+            :style="{ width: leftExpanded ? (leftWide ? '640px' : '320px') : '48px' }"
           >
-            <AirportRestrictions v-if="leftExpanded" :expanded="leftWide" @toggle-expand="toggleLeftWide" @filter-change="onFilterChange" />
+            <AirportRestrictions v-if="leftExpanded" :expanded="leftWide" @toggle-expand="toggleLeftWide" @filter-change="onFilterChange" @bar-click="(icao:string) => detailIcao = icao" />
             <div v-else class="left-icon-only">
               <button class="icon-only-btn" @click="leftExpanded = true" title="展开面板">◫</button>
             </div>
@@ -69,29 +69,29 @@
             </button>
           </div>
 
-          <!-- 左拖拽手柄（仅展开态显示） -->
-          <div v-if="leftExpanded" class="resize-handle" @mousedown="startDrag('left', $event)" />
-
           <!-- 中间：核心地图 -->
           <div class="panel-center">
-            <MapCore :filters="mapFilters" :key="filterKey" />
+            <MapCore :filters="mapFilters" :key="filterKey" @airport-click="(icao:string) => detailIcao = icao" />
           </div>
 
-          <!-- 右拖拽手柄 -->
-          <div class="resize-handle" @mousedown="startDrag('right', $event)" />
-
           <!-- 右侧：航班动态 -->
-          <div class="panel-right" :style="{ width: rightWidth + 'px' }">
-            <FlightDynamics />
+          <div class="panel-right">
+            <FlightDynamics @flight-click="analysisFlightNo = $event" />
           </div>
         </div>
       </div>
     </main>
+
+    <!-- 机场详情弹窗 -->
+    <AirportDetail :visible="!!detailIcao" :icao="detailIcao || ''" @close="detailIcao = null" />
+
+    <!-- 航班受影响分析弹窗 -->
+    <FlightAnalysisModal :visible="!!analysisFlightNo" :flight-no="analysisFlightNo || ''" @close="analysisFlightNo = null" @preview-route="onPreviewRoute" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
@@ -99,6 +99,8 @@ import TopStatusBar from '@/components/dashboard/TopStatusBar.vue'
 import AirportRestrictions from '@/components/dashboard/AirportRestrictions.vue'
 import MapCore from '@/components/dashboard/MapCore.vue'
 import FlightDynamics from '@/components/dashboard/FlightDynamics.vue'
+import AirportDetail from '@/components/dashboard/AirportDetail.vue'
+import FlightAnalysisModal from '@/components/dashboard/FlightAnalysisModal.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -111,13 +113,10 @@ const sidebarCollapsed = ref(true)
 // 地图内容过滤（共享状态 — 用 ref 包装整个对象确保引用变化）
 const filterKey = ref(0)
 const mapFilters = ref({
-  prohibited: true, restricted: true, waypoints: true, routes: true, airports: true,
+  prohibited: true, restricted: true, waypoints: true, routes: true, airports: true, allAirports: false,
 })
-const leftWidth = ref(320)
-const rightWidth = ref(360)
-
-// 当前左侧宽度：展开 640 时用 640，否则用拖拽宽度
-const currentLeftWidth = computed(() => leftWide.value ? 640 : leftWidth.value)
+const detailIcao = ref<string | null>(null)
+const analysisFlightNo = ref<string | null>(null)
 
 const toggleLeftWide = () => { leftWide.value = !leftWide.value }
 
@@ -133,36 +132,8 @@ const onFilterChange = (key: string, val: boolean) => {
   }
 }
 
-// 拖拽调整面板宽度
-let dragging: 'left' | 'right' | null = null
-let startX = 0
-let startWidth = 0
-
-const startDrag = (side: 'left' | 'right', e: MouseEvent) => {
-  dragging = side
-  startX = e.clientX
-  startWidth = side === 'left' ? leftWidth.value : rightWidth.value
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
-  document.body.style.cursor = 'col-resize'
-  document.body.style.userSelect = 'none'
-}
-
-const onDrag = (e: MouseEvent) => {
-  if (!dragging) return
-  const delta = e.clientX - startX
-  const newWidth = startWidth + (dragging === 'left' ? delta : -delta)
-  const clamped = Math.max(200, Math.min(600, newWidth))
-  if (dragging === 'left') leftWidth.value = clamped
-  else rightWidth.value = clamped
-}
-
-const stopDrag = () => {
-  dragging = null
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
-  document.body.style.cursor = ''
-  document.body.style.userSelect = ''
+const onPreviewRoute = (routeId: string, flightNo: string) => {
+  // 预览备选航线在地图上的轨迹（后续接入 MapCore）
 }
 
 const handleLogout = async () => {
@@ -361,21 +332,6 @@ const handleLogout = async () => {
   min-height: 0;
 }
 
-/* ---- 拖拽手柄 ---- */
-.resize-handle {
-  width: 4px;
-  flex-shrink: 0;
-  cursor: col-resize;
-  background: transparent;
-  transition: background 0.2s;
-  position: relative;
-  z-index: 15;
-}
-.resize-handle:hover,
-.resize-handle:active {
-  background: rgba(0, 212, 255, 0.2);
-}
-
 /* ---- 左侧面板 ---- */
 .panel-left {
   flex-shrink: 0;
@@ -464,6 +420,7 @@ const handleLogout = async () => {
 
 /* ---- 右侧面板 ---- */
 .panel-right {
+  width: 360px;
   flex-shrink: 0;
   border-left: 1px solid rgba(0, 212, 255, 0.06);
   background: rgba(8, 14, 32, 0.6);
