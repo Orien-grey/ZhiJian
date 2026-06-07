@@ -72,7 +72,7 @@
 
           <!-- 中间：核心地图（paddingLeft 给左面板留位，面板拉宽不影响地图） -->
           <div class="panel-center">
-            <MapCore :filters="mapFilters" :key="filterKey" @airport-click="onBarClick" />
+            <MapCore :filters="mapFilters" :active-time="activeTime" :key="filterKey" @airport-click="onBarClick" />
 
             <!-- 机场详情覆盖层 -->
             <AirportDetailPanel v-if="detailIcao" :icao="detailIcao" @close="detailIcao = null" />
@@ -330,6 +330,7 @@ const handleLogout = async () => {
   display: flex;
   overflow: hidden;
   min-height: 0;
+  position: relative;
 }
 
 /* ---- 左侧面板（absolute，展开时丝滑拉宽盖地图） ---- */
@@ -337,8 +338,8 @@ const handleLogout = async () => {
   position: absolute; left: 0; top: 0; bottom: 0; z-index: 25;
   width: 320px;
   display: flex; flex-direction: column;
-  border-right: 1px solid rgba(0,212,255,0.12);
-  background: rgba(8,14,32,0.92); backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(0,212,255,0.11);
+  background: rgba(8,14,32,0.91); backdrop-filter: blur(12px);
   transition: width 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
   overflow: hidden;
 }
@@ -359,13 +360,13 @@ const handleLogout = async () => {
 
 .panel-collapse-btn {
   position: absolute; top: 8px; right: 6px; width: 24px; height: 24px;
-  border-radius: 5px; border: 1px solid rgba(0,212,255,0.12);
+  border-radius: 5px; border: 1px solid rgba(0,212,255,0.11);
   background: rgba(10,18,40,0.85); color: #00d4ff; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; z-index: 20; transition: all 0.2s; backdrop-filter: blur(6px);
 }
 .panel-collapse-btn.collapsed { right: 4px; top: 50%; transform: translateY(-50%); width: 20px; height: 40px; }
-.panel-collapse-btn:hover { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.3); }
+.panel-collapse-btn:hover { background: rgba(0,212,255,0.11); border-color: rgba(0,212,255,0.3); }
 
 /* ---- 中间地图（全宽占满，左右面板浮动覆盖） ---- */
 .panel-center {
@@ -378,8 +379,8 @@ const handleLogout = async () => {
 .panel-right {
   position: absolute; right: 0; top: 0; bottom: 0; z-index: 25;
   width: 360px;
-  border-left: 1px solid rgba(0,212,255,0.12);
-  background: rgba(8,14,32,0.92); backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(0,212,255,0.11);
+  background: rgba(8,14,32,0.91); backdrop-filter: blur(12px);
   display: flex; flex-direction: column;
 }
 </style>

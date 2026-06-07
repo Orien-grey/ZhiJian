@@ -4,7 +4,7 @@
     <div class="stats-overlay">
       <div class="stats-row">
         <div class="stat-card">
-          <span v-for="r in mapStats.region" :key="r.name" class="stat-item">
+          <span v-for="r in displayStats.region" :key="r.name" class="stat-item">
             <span class="stat-name">{{ r.name }}</span>
             <span class="stat-count">{{ r.count }}</span>
             <span class="stat-change" :class="r.change >= 0 ? 'up' : 'down'">{{ r.change >= 0 ? '+' : '' }}{{ r.change }}</span>
@@ -12,15 +12,15 @@
         </div>
         <div class="stat-card">
           <span class="stat-label">近24H处理</span>
-          <span class="stat-big">{{ mapStats.notam24h }}</span>
+          <span class="stat-big">{{ displayStats.notam24h }}</span>
           <span class="stat-unit">条</span>
           <span class="stat-divider">|</span>
           <span class="stat-label">有效禁航</span>
-          <span class="stat-big">{{ mapStats.activeProhibited }}</span>
+          <span class="stat-big">{{ displayStats.activeProhibited }}</span>
           <span class="stat-unit">条</span>
         </div>
         <div class="stat-card">
-          <span v-for="c in mapStats.international" :key="c.name" class="stat-item">
+          <span v-for="c in displayStats.international" :key="c.name" class="stat-item">
             <span class="stat-name">{{ c.name }}</span>
             <span class="stat-count">{{ c.count }}</span>
           </span>
@@ -58,17 +58,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
 import {
   MOCK_WAYPOINTS, MOCK_ROUTES, MOCK_POLYGON_ZONES, MOCK_CIRCLE_ZONES,
   MOCK_FIR_BOUNDARIES, MOCK_MAP_STATS, type PolygonZone,
 } from '@/views/dashboard/mock/mapData'
 
+const props = withDefaults(defineProps<{
+  filters?: { prohibited: boolean; restricted: boolean; waypoints: boolean; routes: boolean; airports: boolean; allAirports: boolean }
+  activeTime?: 'today' | 'tomorrow' | 'both'
+}>(), { filters: () => ({ prohibited: true, restricted: true, waypoints: true, routes: true, airports: true, allAirports: false }), activeTime: 'today' })
+const emit = defineEmits<{ (e: 'airport-click', icao: string): void }>()
+
 const chartRef = ref<HTMLDivElement | null>(null)
 let instance: echarts.ECharts | null = null
 const selectedZone = ref<PolygonZone | null>(null)
 const mapStats = MOCK_MAP_STATS
+
+// 时间维度驱动统计卡变化
+const timeMultiplier = computed(() => props.activeTime === 'tomorrow' ? 1.15 : props.activeTime === 'both' ? 1.3 : 1)
+const displayStats = computed(() => ({
+  region: MOCK_MAP_STATS.region.map(r => ({ ...r, count: Math.round(r.count * timeMultiplier.value) })),
+  notam24h: Math.round(MOCK_MAP_STATS.notam24h * timeMultiplier.value),
+  activeProhibited: Math.round(MOCK_MAP_STATS.activeProhibited * timeMultiplier.value),
+  international: MOCK_MAP_STATS.international.map(c => ({ ...c, count: Math.round(c.count * timeMultiplier.value) })),
+}))
+
+// 机场坐标（用于地图标记）
+const AIRPORT_MARKERS: { icao: string; lng: number; lat: number }[] = [
+  { icao:'ZBAA', lng:116.585, lat:40.073 }, { icao:'ZSSS', lng:121.336, lat:31.198 },
+  { icao:'ZGGG', lng:113.300, lat:23.393 }, { icao:'ZUUU', lng:103.947, lat:30.579 },
+  { icao:'ZLXY', lng:108.754, lat:34.446 }, { icao:'ZUCK', lng:106.642, lat:29.719 },
+  { icao:'ZHCC', lng:113.842, lat:34.521 }, { icao:'ZSAM', lng:118.129, lat:24.546 },
+  { icao:'ZSNJ', lng:118.860, lat:31.742 }, { icao:'ZBTJ', lng:117.347, lat:39.127 },
+  { icao:'ZSPD', lng:121.806, lat:31.144 }, { icao:'ZSHC', lng:120.432, lat:30.229 },
+  { icao:'ZGSZ', lng:113.811, lat:22.640 }, { icao:'ZJHK', lng:110.462, lat:19.939 },
+  { icao:'ZYTX', lng:123.493, lat:41.640 }, { icao:'ZPPP', lng:102.919, lat:25.101 },
+  { icao:'ZSJN', lng:116.983, lat:36.857 }, { icao:'ZUGY', lng:106.802, lat:26.539 },
+  { icao:'ZWWW', lng:87.474, lat:43.907 },
+]
 
 function findWaypoint(code: string): [number, number] | null {
   const w = MOCK_WAYPOINTS.find(wp => wp.code === code)
@@ -103,6 +132,7 @@ function render() {
   if (!chartRef.value) return
   if (!instance) instance = echarts.init(chartRef.value)
 
+  const filters = props.filters || { prohibited: true, restricted: true, waypoints: true, routes: true, airports: true, allAirports: false }
   const series: any[] = [
     // FIR 边界
     ...MOCK_FIR_BOUNDARIES.map(fir => ({
@@ -110,8 +140,8 @@ function render() {
       data: [{ coords: fir.coords }],
       lineStyle: { color: 'rgba(0,212,255,0.1)', width: 1, type: 'dashed' },
     })),
-    // 航路
-    ...MOCK_ROUTES.map((route, i) => {
+    // 航路（受过滤控制）
+    ...(filters.routes ? MOCK_ROUTES.map((route, i) => {
       const coords: [number, number][] = []
       for (let j = 0; j < route.waypoints.length - 1; j++) {
         const f = findWaypoint(route.waypoints[j]), t = findWaypoint(route.waypoints[j + 1])
@@ -121,35 +151,85 @@ function render() {
         type: 'lines', coordinateSystem: 'geo', polyline: true, zlevel: 1,
         data: [{ coords }],
         lineStyle: { color: 'rgba(0,212,255,0.06)', width: 1 },
-        effect: { show: true, period: 5 + i * 0.6, trailLength: 0.1, symbol: 'circle', symbolSize: 2, color: 'rgba(0,212,255,0.4)' },
+        emphasis: { lineStyle: { color: 'rgba(0,212,255,0.5)', width: 2.5 } },
+        effect: { show: true, period: 5 + i * 0.6, trailLength: 0.1, symbol: 'circle', symbolSize: 2, color: 'rgba(0,212,255,0.38)' },
       } : null
-    }).filter(Boolean),
-    // 航路点
-    {
+    }).filter(Boolean) : []),
+    // 航路点（受过滤控制）
+    ...(filters.waypoints ? [{
       type: 'scatter', coordinateSystem: 'geo', zlevel: 3, silent: true,
       data: MOCK_WAYPOINTS.map(w => ({ name: w.code, value: [w.lng, w.lat] })),
-      symbolSize: 5, itemStyle: { color: '#fff', borderColor: 'rgba(0,180,220,0.6)', borderWidth: 1.5 },
+      symbolSize: 5, itemStyle: { color: '#fff', borderColor: 'rgba(0,180,220,0.58)', borderWidth: 1.5 },
       label: { show: true, position: 'right', color: '#94a3b8', fontSize: 9, fontFamily: 'monospace', distance: 4 },
-    },
-    // 圆形限制区
-    ...MOCK_CIRCLE_ZONES.map(z => ({
-      type: 'lines', coordinateSystem: 'geo', polyline: true, zlevel: 2, silent: true,
-      data: [{ coords: circlePts(z.center, z.radius) }],
-      lineStyle: { color: 'rgba(56,189,248,0.35)', width: 2 },
-    })),
-    // 多边形限制区
-    ...MOCK_POLYGON_ZONES.map(z => ({
-      type: 'lines', coordinateSystem: 'geo', polyline: true, zlevel: 2,
-      data: [{ coords: z.coords, name: z.name }],
-      lineStyle: { color: 'rgba(239,68,68,0.45)', width: 1.5 },
-      label: { show: true, formatter: z.name, color: '#fca5a5', fontSize: 10, position: 'insideTopLeft' },
-    })),
+    }] : []),
+    // 圆形限制区（受限制区过滤，含同心圆雷达环）
+    ...(filters.restricted ? MOCK_CIRCLE_ZONES.flatMap(z => [
+      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1, silent:true,
+        data:[{ coords:circlePts(z.center, z.radius*1.5) }],
+        lineStyle:{ color:'rgba(56,189,248,0.05)', width:1, type:'dashed' } },
+      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1, silent:true,
+        data:[{ coords:circlePts(z.center, z.radius*0.6) }],
+        lineStyle:{ color:'rgba(56,189,248,0.1)', width:1 } },
+      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:2, silent:true,
+        data:[{ coords:circlePts(z.center, z.radius) }],
+        lineStyle:{ color:'rgba(56,189,248,0.48)', width:2 } },
+      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:1, silent:true,
+        data:[[z.center[0], z.center[1], 1] as [number,number,number]],
+        symbolSize:40, itemStyle:{ color:'rgba(56,189,248,0.05)' } },
+      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:2, silent:true,
+        data:[{ name:z.name, value:[z.center[0], z.center[1], 1] as [number,number,number] }],
+        symbolSize:8, itemStyle:{ color:'rgba(56,189,248,0.6)', borderColor:'#fff', borderWidth:1 },
+        label:{ show:true, formatter:z.name, color:'#7dd3fc', fontSize:9, position:'top', distance:8 } },
+    ]) : []),
+    // 机场标记（受运行机场/所有机场过滤）
+    ...((filters.airports || filters.allAirports) ? [{
+      type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 4, silent: true,
+      data: AIRPORT_MARKERS.map(a => ({ name: a.icao, value: [a.lng, a.lat] })),
+      symbolSize: 8, itemStyle: { color: '#00d4ff', borderColor: '#fff', borderWidth: 2, shadowBlur: 6, shadowColor: 'rgba(0,212,255,0.5)' },
+      label: { show: true, position: 'right', color: '#e2e8f0', fontSize: 10, fontFamily: 'monospace', distance: 6 },
+    }] : []),
+    // 多边形限制区（受禁航通告过滤）
+    ...(filters.prohibited ? MOCK_POLYGON_ZONES.flatMap(z => {
+      const cx = z.coords.reduce((s,c) => s + c[0], 0) / z.coords.length
+      const cy = z.coords.reduce((s,c) => s + c[1], 0) / z.coords.length
+      const pts = z.coords.map(c => [...c, 1] as [number, number, number])
+      return [
+        // 半透明填充多边形（用顶点散点模拟面）
+        ...z.coords.map(c => ({
+          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1, silent: true,
+          data: [[...c, 1] as [number, number, number]],
+          symbolSize: 6, itemStyle: { color: 'rgba(239,68,68,0.12)' },
+        })),
+        // 中心大面积光晕
+        {
+          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1, silent: true,
+          data: [[cx, cy, 1] as [number, number, number]],
+          symbolSize: 50, itemStyle: { color: 'rgba(239,68,68,0.1)' },
+        },
+        // 红色边框
+        {
+          type: 'lines' as const, coordinateSystem: 'geo' as const, polyline: true, zlevel: 2,
+          data: [{ coords: z.coords, name: z.name }],
+          lineStyle: { color: 'rgba(239,68,68,0.5)', width: 2, type: 'dashed' },
+          label: { show: true, formatter: z.name, color: '#fca5a5', fontSize: 10 },
+          emphasis: { lineStyle: { color: 'rgba(239,68,68,0.85)', width: 3 } },
+        },
+      ]
+    }) : []),
+    // 禁航区→受影响航路点连接线
+    ...(filters.prohibited ? MOCK_POLYGON_ZONES.flatMap(z => {
+      const cx = z.coords.reduce((s,c) => s + c[0], 0) / z.coords.length
+      const cy = z.coords.reduce((s,c) => s + c[1], 0) / z.coords.length
+      const wps = [...new Set(z.notams.flatMap(n => n.affectedRoutes.flatMap(r => { const rt = MOCK_ROUTES.find(rt => rt.name === r); return rt ? rt.waypoints : [] })))]
+      return wps.map(wpCode => { const wp = findWaypoint(wpCode); if (!wp) return null; return { type: "lines", coordinateSystem:"geo", zlevel:1, silent:true, data:[{ coords:[[cx,cy], wp] }], lineStyle:{ color:"rgba(239,68,68,0.2)", width:0.5, type:"dotted" } } }).filter(Boolean)
+    }) : []),
   ]
 
   instance.setOption({
     backgroundColor: 'transparent',
     geo: {
       map: 'china', roam: true, zoom: 1.2, center: [105, 34], aspectScale: 0.85,
+      tooltip: { show: true, trigger: 'item' },
       itemStyle: { areaColor: 'rgba(8,14,32,0.8)', borderColor: 'rgba(0,212,255,0.12)', borderWidth: 1 },
       emphasis: { disabled: true },
       regions: [{ name: '南海诸岛', itemStyle: { areaColor: 'rgba(8,14,32,0.8)', borderColor: 'rgba(0,212,255,0.06)' } }],
@@ -163,16 +243,36 @@ onMounted(async () => {
     try { const g = await import('@/assets/map/china.json'); echarts.registerMap('china', g.default as any) } catch { /* */ }
   }
   render()
-  // 点击限制区事件
   instance?.on('click', (p: any) => {
     if (p.seriesType === 'lines' && p.data?.name) {
       const z = MOCK_POLYGON_ZONES.find(z => z.name === p.data.name)
       if (z) selectedZone.value = z
     }
+    // 点击机场标记 → 弹出详情
+    if (p.seriesType === 'scatter' && AIRPORT_MARKERS.some(a => a.icao === p.name)) {
+      emit('airport-click', p.name)
+    }
   })
+  instance?.on('dblclick', () => { instance?.dispatchAction({ type: 'restore' }) })
+
+  // 监听容器尺寸变化，拖拽面板时自动适配地图大小
+  if (chartRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      instance?.resize()
+    })
+    resizeObserver.observe(chartRef.value)
+  }
 })
 
-onUnmounted(() => { instance?.dispose(); instance = null })
+// 监听过滤变化，重新渲染
+watch(() => props.filters, () => render(), { deep: true })
+
+let resizeObserver: ResizeObserver | null = null
+
+onUnmounted(() => {
+  resizeObserver?.disconnect()
+  instance?.dispose(); instance = null
+})
 </script>
 
 <style scoped>
