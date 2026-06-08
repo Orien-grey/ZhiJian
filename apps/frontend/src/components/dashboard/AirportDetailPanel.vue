@@ -85,7 +85,7 @@ const landingMinima = computed(() => MOCK_LANDING_MINIMA[props.icao] || [])
 .mono { font-family:'IBM Plex Mono',monospace; }
 .head-r { display:flex; align-items:center; gap:14px; }
 .coord, .elev { font-size:10px; color:#475569; }
-.close-btn { width:30px; height:30px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); color:#64748b; cursor:pointer; font-size:14px; transition:all 0.15s; }
+.close-btn { width:30px; height:30px; border-radius:6px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.03); color:#64748b; cursor:pointer; font-size:14px; transition:all 0.15s; }
 .close-btn:hover { background:rgba(239,68,68,0.1); color:#ef4444; border-color:rgba(239,68,68,0.2); }
 
 .tabs { display:flex; padding:0 22px; border-bottom:1px solid rgba(0,180,240,0.04); flex-shrink:0; }

@@ -54,7 +54,7 @@ const toggleRoute = (r: AlternateRoute) => {
 </script>
 
 <style scoped>
-.section { padding: 18px 20px; }
+.section { padding: 18px 19px; }
 .sec-title { font-size: 11px; font-weight: 600; color: #64748b; margin: 0 0 12px; letter-spacing: 0.06em; text-transform: uppercase; }
 .no-data { font-size: 11px; color: #334155; text-align: center; padding: 32px 0; }
 
@@ -63,8 +63,8 @@ const toggleRoute = (r: AlternateRoute) => {
   border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);
   background: rgba(255,255,255,0.01); transition: all 0.2s; cursor: pointer;
 }
-.route-card:hover { border-color: rgba(0,212,255,0.1); background: rgba(0,212,255,0.02); }
-.route-card.selected { border-color: rgba(0,212,255,0.2); background: rgba(0,212,255,0.04); }
+.route-card:hover { border-color: rgba(0,212,255,0.09); background: rgba(0,212,255,0.02); }
+.route-card.selected { border-color: rgba(0,212,255,0.2); background: rgba(0,212,255,0.03); }
 
 .card-left { display: flex; align-items: flex-start; padding-top: 2px; }
 .cb {

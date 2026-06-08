@@ -194,4 +194,89 @@ export const MOCK_AIRPORT_WEATHER: Record<string, AirportWeather> = {
     wind:'320° / 12kt', visibility:'10km+', ceiling:'4000ft FEW', temp:'22°C', qnh:'1018 hPa',
     trend:'improving',
   },
+  ZLXY: {
+    icao:'ZLXY', metar:'ZLXY 061400Z 06004KT 6000 HZ FEW030 29/17 Q1014 NOSIG',
+    taf:'ZLXY 061100Z 0612/0718 06004KT 6000 HZ FEW030 BECMG 0700/0702 22006KT',
+    wind:'060° / 4kt', visibility:'6 km (霾)', ceiling:'3000ft FEW', temp:'29°C', qnh:'1014 hPa', trend:'stable',
+  },
+  ZUCK: {
+    icao:'ZUCK', metar:'ZUCK 061400Z VRB02KT 5000 BR SCT020 27/20 Q1011 NOSIG',
+    taf:'ZUCK 061100Z 0612/0718 VRB02KT 5000 BR SCT020 BECMG 0616/0618 2000 BR',
+    wind:'VRB / 2kt', visibility:'5 km (轻雾)', ceiling:'2000ft SCT', temp:'27°C', qnh:'1011 hPa', trend:'deteriorating',
+  },
+  ZHCC: {
+    icao:'ZHCC', metar:'ZHCC 061400Z 12008KT 7000 NSC 25/14 Q1016 NOSIG',
+    taf:'ZHCC 061100Z 0612/0718 12008KT CAVOK BECMG 0706/0708 18010KT',
+    wind:'120° / 8kt', visibility:'7 km', ceiling:'无云', temp:'25°C', qnh:'1016 hPa', trend:'stable',
+  },
+  ZSAM: {
+    icao:'ZSAM', metar:'ZSAM 061400Z 15012KT 9999 FEW020 BKN050 30/24 Q1010 NOSIG',
+    taf:'ZSAM 061100Z 0612/0718 15012KT 9999 FEW020 BKN050 TEMPO 0612/0616 4000 +SHRA',
+    wind:'150° / 12kt', visibility:'10km+', ceiling:'2000ft FEW / 5000ft BKN', temp:'30°C', qnh:'1010 hPa', trend:'deteriorating',
+  },
+  ZSNJ: {
+    icao:'ZSNJ', metar:'ZSNJ 061400Z 20006KT 8000 -RA OVC040 23/16 Q1012 TEMPO 4000 RA',
+    taf:'ZSNJ 061100Z 0612/0718 20006KT 8000 -RA OVC040 TEMPO 0612/0618 3000 +RA',
+    wind:'200° / 6kt', visibility:'8 km (小雨)', ceiling:'4000ft OVC', temp:'23°C', qnh:'1012 hPa', trend:'deteriorating',
+  },
+  ZBTJ: {
+    icao:'ZBTJ', metar:'ZBTJ 061400Z 05010KT 6000 HZ NSC 27/13 Q1015 NOSIG',
+    taf:'ZBTJ 061100Z 0612/0718 05010KT 6000 HZ NSC BECMG 0700/0702 12006KT',
+    wind:'050° / 10kt', visibility:'6 km (霾)', ceiling:'无云', temp:'27°C', qnh:'1015 hPa', trend:'stable',
+  },
+  ZSPD: {
+    icao:'ZSPD', metar:'ZSPD 061400Z 18012KT 8000 -SHRA BKN030 OVC060 25/19 Q1009 TEMPO 4000 TSRA',
+    taf:'ZSPD 061100Z 0612/0718 18012KT 8000 -SHRA BKN030 TEMPO 0612/0616 2000 +TSRA BECMG 0700/0702 15008KT',
+    wind:'180° / 12kt', visibility:'8 km (阵雨)', ceiling:'3000ft BKN', temp:'25°C', qnh:'1009 hPa', trend:'deteriorating',
+  },
+  ZSHC: {
+    icao:'ZSHC', metar:'ZSHC 061400Z 19008KT 6000 -RA SCT015 OVC035 24/18 Q1011 NOSIG',
+    taf:'ZSHC 061100Z 0612/0718 19008KT 6000 -RA SCT015 OVC035 BECMG 0618/0620 34004KT 4000 BR',
+    wind:'190° / 8kt', visibility:'6 km (小雨)', ceiling:'1500ft SCT / 3500ft OVC', temp:'24°C', qnh:'1011 hPa', trend:'stable',
+  },
+  ZGSZ: {
+    icao:'ZGSZ', metar:'ZGSZ 061400Z 17010KT 9999 SCT025 31/24 Q1009 NOSIG',
+    taf:'ZGSZ 061100Z 0612/0718 17010KT 9999 SCT025 BECMG 0616/0618 VRB03KT',
+    wind:'170° / 10kt', visibility:'10km+', ceiling:'2500ft SCT', temp:'31°C', qnh:'1009 hPa', trend:'stable',
+  },
+  ZJHK: {
+    icao:'ZJHK', metar:'ZJHK 061400Z 12018G28KT 4000 +TSRA BKN015CB OVC030 26/23 Q1005 TEMPO 2000',
+    taf:'ZJHK 061100Z 0612/0718 12018G28KT 4000 +TSRA BKN015CB TEMPO 0612/0618 1500 +TSRA BECMG 0706/0708 12010KT 8000 NSW',
+    wind:'120° / 18G28kt', visibility:'4 km (强雷雨)', ceiling:'1500ft CB BKN', temp:'26°C', qnh:'1005 hPa', trend:'deteriorating',
+  },
+  ZYTX: {
+    icao:'ZYTX', metar:'ZYTX 061400Z 32014KT 9999 FEW040 18/04 Q1018 NOSIG',
+    taf:'ZYTX 061100Z 0612/0718 32014KT CAVOK BECMG 0700/0702 29006KT',
+    wind:'320° / 14kt', visibility:'10km+', ceiling:'4000ft FEW', temp:'18°C', qnh:'1018 hPa', trend:'stable',
+  },
+  ZPPP: {
+    icao:'ZPPP', metar:'ZPPP 061400Z 21006KT 9999 FEW030TCU SCT040 22/13 Q1023 NOSIG',
+    taf:'ZPPP 061100Z 0612/0718 21006KT 9999 FEW030TCU SCT040 TEMPO 0614/0618 VRB15KT 3000 TSRA',
+    wind:'210° / 6kt', visibility:'10km+', ceiling:'3000ft TCU FEW / 4000ft SCT', temp:'22°C', qnh:'1023 hPa', trend:'stable',
+  },
+  ZSJN: {
+    icao:'ZSJN', metar:'ZSJN 061400Z 18006KT 5000 HZ NSC 28/16 Q1013 NOSIG',
+    taf:'ZSJN 061100Z 0612/0718 18006KT 5000 HZ NSC BECMG 0706/0708 20008KT',
+    wind:'180° / 6kt', visibility:'5 km (霾)', ceiling:'无云', temp:'28°C', qnh:'1013 hPa', trend:'stable',
+  },
+  ZUGY: {
+    icao:'ZUGY', metar:'ZUGY 061400Z 16004KT 4000 BR SCT010 OVC030 21/18 Q1025 NOSIG',
+    taf:'ZUGY 061100Z 0612/0718 16004KT 4000 BR SCT010 OVC030 BECMG 0702/0704 6000 NSW',
+    wind:'160° / 4kt', visibility:'4 km (薄雾)', ceiling:'1000ft SCT / 3000ft OVC', temp:'21°C', qnh:'1025 hPa', trend:'improving',
+  },
+  ZLLL: {
+    icao:'ZLLL', metar:'ZLLL 061400Z 31008KT 8000 NSC 22/06 Q1020 NOSIG',
+    taf:'ZLLL 061100Z 0612/0718 31008KT CAVOK BECMG 0700/0702 06004KT',
+    wind:'310° / 8kt', visibility:'8 km', ceiling:'无云', temp:'22°C', qnh:'1020 hPa', trend:'stable',
+  },
+  ZBNY: {
+    icao:'ZBNY', metar:'ZBNY 061400Z 18006KT 5000 HZ NSC 28/15 Q1013 NOSIG',
+    taf:'ZBNY 061100Z 0612/0718 18006KT 5000 HZ NSC BECMG 0618/0620 VRB02KT 3000 BR',
+    wind:'180° / 6kt', visibility:'5 km (霾)', ceiling:'无云', temp:'28°C', qnh:'1013 hPa', trend:'deteriorating',
+  },
+  ZHHH: {
+    icao:'ZHHH', metar:'ZHHH 061400Z 15008KT 7000 -RA SCT020 OVC050 24/17 Q1013 NOSIG',
+    taf:'ZHHH 061100Z 0612/0718 15008KT 7000 -RA SCT020 OVC050 BECMG 0700/0702 12004KT 9999 NSW',
+    wind:'150° / 8kt', visibility:'7 km (小雨)', ceiling:'2000ft SCT / 5000ft OVC', temp:'24°C', qnh:'1013 hPa', trend:'improving',
+  },
 }

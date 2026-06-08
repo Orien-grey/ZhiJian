@@ -153,7 +153,7 @@ const makeRestrictionZones = (depTime: string, flightMin: number): RestrictionZo
 export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   // ---- 受影响航班：完整数据 ----
   MU5678: {
-    flightNo: 'MU5678', delayMinutes: 36, originalRoute: 'ZSSS PIMOL A593 P54 W554 SAREX ZGGG',
+    flightNo: 'MU5103', delayMinutes: 36, originalRoute: 'ZSSS PIMOL A593 P54 W554 SAREX ZGGG',
     aircraftType: 'B738', registration: 'B-5678',
     depIcao: 'ZSSS', arrIcao: 'ZGGG',
     scheduledDeparture: '13:30', estimatedDeparture: '14:05',
@@ -176,7 +176,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   CZ9012: {
-    flightNo: 'CZ9012', delayMinutes: 21, originalRoute: 'ZGGG QF A461 P60 CKA ZUUU',
+    flightNo: 'CZ3601', delayMinutes: 21, originalRoute: 'ZGGG QF A461 P60 CKA ZUUU',
     aircraftType: 'A330', registration: 'B-9012',
     depIcao: 'ZGGG', arrIcao: 'ZUUU',
     scheduledDeparture: '14:00', estimatedDeparture: '14:20',
@@ -196,7 +196,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   HU3456: {
-    flightNo: 'HU3456', delayMinutes: 46, originalRoute: 'ZBAA CDY B215 JB W66 ZLXY',
+    flightNo: 'CA1507', delayMinutes: 46, originalRoute: 'ZBAA CDY B215 JB W66 ZLXY',
     aircraftType: 'B789', registration: 'B-3456',
     depIcao: 'ZBAA', arrIcao: 'ZLXY',
     scheduledDeparture: '14:15', estimatedDeparture: '15:00',
@@ -217,7 +217,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   CA8025: {
-    flightNo: 'CA8025', delayMinutes: 56, originalRoute: 'ZSPD SHR A599 WYN H25 ZGGG',
+    flightNo: 'MU5301', delayMinutes: 56, originalRoute: 'ZSPD SHR A599 WYN H25 ZGGG',
     aircraftType: 'A359', registration: 'B-8025',
     depIcao: 'ZSPD', arrIcao: 'ZGGG',
     scheduledDeparture: '15:30', estimatedDeparture: '16:25',
@@ -237,7 +237,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
 
   // ---- 其余航班：简化分析数据 ----
   CA1234: {
-    flightNo: 'CA1234', delayMinutes: 0, originalRoute: 'ZBAA VM B208 ZSSS',
+    flightNo: 'CA1501', delayMinutes: 0, originalRoute: 'ZBAA VM B208 ZSSS',
     aircraftType: 'A320', registration: 'B-1234',
     depIcao: 'ZBAA', arrIcao: 'ZSSS',
     scheduledDeparture: '13:00', estimatedDeparture: '13:00',
@@ -249,8 +249,8 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     alternateRoutes: [],
   },
 
-  '3U7890': {
-    flightNo: '3U7890', delayMinutes: 0, originalRoute: 'ZUUU CZH B213 ZUCK',
+  '3U8601': {
+    flightNo: '3U8601', delayMinutes: 0, originalRoute: 'ZUUU CZH B213 ZUCK',
     aircraftType: 'A319', registration: 'B-7890',
     depIcao: 'ZUUU', arrIcao: 'ZUCK',
     scheduledDeparture: '14:30', estimatedDeparture: '14:30',
@@ -265,7 +265,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   // ---- 其余受影响航班：完整数据 ----
 
   MU1357: {
-    flightNo: 'MU1357', delayMinutes: 51, originalRoute: 'ZGGG P270 A599 SHZ G204 ZSPD',
+    flightNo: 'CZ3401', delayMinutes: 51, originalRoute: 'ZGGG P270 A599 SHZ G204 ZSPD',
     aircraftType: 'B77W', registration: 'B-1357',
     depIcao: 'ZGGG', arrIcao: 'ZSPD',
     scheduledDeparture: '15:00', estimatedDeparture: '15:50',
@@ -286,7 +286,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   HU9876: {
-    flightNo: 'HU9876', delayMinutes: 64, originalRoute: 'ZJHK LH R339 BHY W70 ZBAA',
+    flightNo: 'HU7401', delayMinutes: 64, originalRoute: 'ZJHK LH R339 BHY W70 ZBAA',
     aircraftType: 'B788', registration: 'B-9876',
     depIcao: 'ZJHK', arrIcao: 'ZBAA',
     scheduledDeparture: '16:00', estimatedDeparture: '17:05',
@@ -306,7 +306,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   CZ3579: {
-    flightNo: 'CZ3579', delayMinutes: 30, originalRoute: 'ZSAM FQG A470 P169 ZGGG',
+    flightNo: 'CZ3301', delayMinutes: 30, originalRoute: 'ZSAM FQG A470 P169 ZGGG',
     aircraftType: 'A321', registration: 'B-3579',
     depIcao: 'ZSAM', arrIcao: 'ZGGG',
     scheduledDeparture: '16:30', estimatedDeparture: '17:00',
@@ -325,7 +325,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   MU8080: {
-    flightNo: 'MU8080', delayMinutes: 40, originalRoute: 'ZSHC SHR G204 P250 W554 ZBAA',
+    flightNo: 'MU5701', delayMinutes: 40, originalRoute: 'ZSHC SHR G204 P250 W554 ZBAA',
     aircraftType: 'A320', registration: 'B-8080',
     depIcao: 'ZSHC', arrIcao: 'ZBAA',
     scheduledDeparture: '17:00', estimatedDeparture: '17:40',
@@ -344,8 +344,8 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  '3U5555': {
-    flightNo: '3U5555', delayMinutes: 56, originalRoute: 'ZUUU CZH B330 P120 H11 ZYTX',
+  '3U8703': {
+    flightNo: '3U8703', delayMinutes: 56, originalRoute: 'ZUUU CZH B330 P120 H11 ZYTX',
     aircraftType: 'A330', registration: 'B-5555',
     depIcao: 'ZUUU', arrIcao: 'ZYTX',
     scheduledDeparture: '17:30', estimatedDeparture: '18:25',
@@ -366,7 +366,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   CZ3030: {
-    flightNo: 'CZ3030', delayMinutes: 46, originalRoute: 'ZGGG YIN A461 VYK ZBTJ',
+    flightNo: 'CZ3901', delayMinutes: 46, originalRoute: 'ZGGG YIN A461 VYK ZBTJ',
     aircraftType: 'A333', registration: 'B-3030',
     depIcao: 'ZGGG', arrIcao: 'ZBTJ',
     scheduledDeparture: '18:15', estimatedDeparture: '19:00',
@@ -386,7 +386,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   HU5050: {
-    flightNo: 'HU5050', delayMinutes: 25, originalRoute: 'ZJHK LH R339 BHY W30 ZLXY',
+    flightNo: 'HU7601', delayMinutes: 25, originalRoute: 'ZJHK LH R339 BHY W30 ZLXY',
     aircraftType: 'B789', registration: 'B-5050',
     depIcao: 'ZJHK', arrIcao: 'ZLXY',
     scheduledDeparture: '19:00', estimatedDeparture: '19:25',
@@ -405,7 +405,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   MU7070: {
-    flightNo: 'MU7070', delayMinutes: 70, originalRoute: 'ZSSS PIMOL A593 P54 W554 ZPPP',
+    flightNo: 'MU5901', delayMinutes: 70, originalRoute: 'ZSSS PIMOL A593 P54 W554 ZPPP',
     aircraftType: 'B77W', registration: 'B-7070',
     depIcao: 'ZSSS', arrIcao: 'ZPPP',
     scheduledDeparture: '20:00', estimatedDeparture: '21:10',
@@ -425,8 +425,8 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  '3U9090': {
-    flightNo: '3U9090', delayMinutes: 36, originalRoute: 'ZUCK QJG B330 P120 A599 ZSAM',
+  '3U8901': {
+    flightNo: '3U8901', delayMinutes: 36, originalRoute: 'ZUCK QJG B330 P120 A599 ZSAM',
     aircraftType: 'A319', registration: 'B-9090',
     depIcao: 'ZUCK', arrIcao: 'ZSAM',
     scheduledDeparture: '21:00', estimatedDeparture: '21:35',
@@ -445,7 +445,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   MU1314: {
-    flightNo: 'MU1314', delayMinutes: 60, originalRoute: 'ZSPD PIMOL A593 WHA B330 ZUUU',
+    flightNo: 'HU7701', delayMinutes: 60, originalRoute: 'ZSPD PIMOL A593 WHA B330 ZUUU',
     aircraftType: 'B788', registration: 'B-1314',
     depIcao: 'ZSPD', arrIcao: 'ZUUU',
     scheduledDeparture: '22:00', estimatedDeparture: '23:00',
