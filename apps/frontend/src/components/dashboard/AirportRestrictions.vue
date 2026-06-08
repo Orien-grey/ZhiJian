@@ -78,6 +78,7 @@ const displayHours = computed(() => {
 
 // ---- 筛选逻辑 ----
 const filteredTimeline = computed(() => {
+  void timelineTick.value // 依赖注入，定时器触发后重新计算
   let list = MOCK_TIMELINE
   if (searchText.value) list = list.filter(a => a.icao.toLowerCase().includes(searchText.value.toLowerCase()))
   if (selectedAirport.value) list = list.filter(a => a.icao === selectedAirport.value)
@@ -117,6 +118,7 @@ const toggleFilter = (opt: string) => {
 
 // ---- 新告警标记（滑入动画） ----
 const newAlertIds = ref<Set<string>>(new Set())
+const timelineTick = ref(0)
 let newAlertTimer: ReturnType<typeof setInterval> | null = null
 const EXTRA_ALERTS = [
   { time:'01:30', icao:'ZLLL', severity:'info' as const, summary:'例行检查' },
@@ -129,24 +131,23 @@ const EXTRA_ALERTS = [
 
 onMounted(() => {
   newAlertTimer = setInterval(() => {
+    const last = MOCK_TIMELINE[MOCK_TIMELINE.length - 1]
     const tpl = EXTRA_ALERTS[Math.floor(Math.random() * EXTRA_ALERTS.length)]
+    if (last && last.time === tpl.time && last.icao === tpl.icao) return
     const id = `new-${Date.now()}`
     const alert: TimelineAlert = {
       id, time: tpl.time, icao: tpl.icao, severity: tpl.severity, summary: tpl.summary,
     }
     MOCK_TIMELINE.unshift(alert)
-    if (MOCK_TIMELINE.length > 50) MOCK_TIMELINE.pop()
+    if (MOCK_TIMELINE.length > 30) MOCK_TIMELINE.pop()
     newAlertIds.value = new Set([...newAlertIds.value, id])
-    // 触发响应式更新
-    const prev = searchText.value
-    searchText.value = prev + ' '
-    searchText.value = prev
+    timelineTick.value++
     setTimeout(() => {
       const updated = new Set(newAlertIds.value)
       updated.delete(id)
       newAlertIds.value = updated
     }, 3000)
-  }, 10000)
+  }, 30000)
 })
 
 onUnmounted(() => {

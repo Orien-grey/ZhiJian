@@ -73,13 +73,13 @@
           <!-- 中间：核心地图（paddingLeft 给左面板留位，面板拉宽不影响地图） -->
           <div class="panel-center">
             <MapCore :filters="mapFilters" :active-time="activeTime" :key="filterKey" @airport-click="onBarClick" />
-
-            <!-- 机场详情覆盖层 -->
-            <AirportDetailPanel v-if="detailIcao" :icao="detailIcao" @close="detailIcao = null" />
-
-            <!-- 航班分析覆盖层 -->
-            <FlightAnalysisPanel v-if="analysisFlightNo" :flight-no="analysisFlightNo" @close="analysisFlightNo = null" />
           </div>
+
+          <!-- 机场详情覆盖层（渲染在 command-body 级别，z-index 高于左右面板） -->
+          <AirportDetailPanel v-if="detailIcao" :icao="detailIcao" @close="detailIcao = null" />
+
+          <!-- 航班分析覆盖层 -->
+          <FlightAnalysisPanel v-if="analysisFlightNo" :flight-no="analysisFlightNo" @close="analysisFlightNo = null" />
 
           <!-- 右侧：航班动态 -->
           <div class="panel-right">
