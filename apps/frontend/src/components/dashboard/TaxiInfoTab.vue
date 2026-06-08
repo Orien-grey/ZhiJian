@@ -3,6 +3,7 @@
     <div class="taxi-grid">
       <!-- SVG 滑行道图 -->
       <div class="taxi-map">
+        <div class="example-badge">示例</div>
         <svg viewBox="0 0 800 520" class="airport-svg">
           <rect width="800" height="520" fill="#080e1e" rx="6" />
           <!-- 跑道 -->
@@ -100,7 +101,8 @@ const twyLabels = computed(() =>
 .body::-webkit-scrollbar-thumb { background:rgba(0,180,240,0.1); border-radius:4px; }
 .taxi-body { padding:15px 22px; }
 .taxi-grid { display:flex; gap:16px; height:100%; }
-.taxi-map { flex:1; min-width:0; }
+.taxi-map { flex:1; min-width:0; position:relative; }
+.example-badge { position:absolute; top:8px; right:10px; font-size:10px; font-weight:700; color:#f59e0b; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); padding:3px 10px; border-radius:4px; letter-spacing:0.08em; z-index:5; }
 .airport-svg { width:100%; height:auto; border-radius:6px; border:1px solid rgba(255,255,255,0.03); }
 .twy-interactive { cursor:pointer; transition:opacity 0.15s; }
 .twy-interactive:hover { opacity:0.7; }

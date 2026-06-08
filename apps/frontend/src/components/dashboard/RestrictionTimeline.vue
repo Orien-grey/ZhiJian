@@ -7,7 +7,6 @@
           :key="alert.id"
           class="tl-card"
           :class="[`tl-${alert.severity}`, newAlertIds.has(alert.id) && 'tl-new']"
-          @click="$emit('click', alert)"
         >
           <span v-if="alert.severity === 'critical'" class="tl-tag">告</span>
           <span v-if="newAlertIds.has(alert.id)" class="tl-new-tag">NEW</span>
@@ -39,16 +38,22 @@ const onWheel = (e: WheelEvent) => {
 
 <style scoped>
 .timeline-section {
-  height: 56px; flex-shrink: 0; border-bottom: 1px solid rgba(0,212,255,0.04);
-  padding: 8px 1px;
+  height: 88px; flex-shrink: 0; border-bottom: 1px solid rgba(0,212,255,0.04);
+  padding: 10px 2px;
 }
-.timeline-scroll { overflow-x: auto; height: 100%; scrollbar-width: none; }
-.timeline-scroll::-webkit-scrollbar { display: none; }
-.timeline-track { display: flex; gap: 8px; padding: 0 12px; min-width: max-content; align-items: center; height: 100%; }
+.timeline-scroll {
+  overflow-x: auto; overflow-y: hidden; height: 100%;
+  scrollbar-width: thin; scrollbar-color: rgba(0,212,255,0.15) transparent;
+}
+.timeline-scroll::-webkit-scrollbar { height: 4px; }
+.timeline-scroll::-webkit-scrollbar-track { background: transparent; }
+.timeline-scroll::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius: 4px; }
+.timeline-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,212,255,0.3); }
+.timeline-track { display: flex; gap: 12px; padding: 0 14px; min-width: max-content; align-items: center; height: 100%; }
 
 .tl-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-width: 56px; height: 38px; border-radius: 6px; cursor: pointer;
+  min-width: 72px; height: 48px; border-radius: 6px;
   flex-shrink: 0; position: relative; transition: transform 0.15s;
 }
 .tl-card:hover { transform: translateY(-2px); }
@@ -62,7 +67,7 @@ const onWheel = (e: WheelEvent) => {
   padding: 0 2px; border-radius: 2px; line-height: 1.4; z-index: 2;
 }
 .tl-time { font-size: 10px; font-family: 'IBM Plex Mono', monospace; opacity: 0.85; }
-.tl-icao { font-size: 11px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
+.tl-icao { font-size: 11px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
 
 .tl-new { animation: slide-in-right 0.4s ease-out; }
 .tl-new-tag {
