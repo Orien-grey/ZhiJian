@@ -39,6 +39,7 @@
         <!-- === 跑道信息 === -->
         <RunwayInfoTab
           v-if="activeTab === 'runway'"
+          :runways="runways"
           :takeoff-minima="takeoffMinima"
           :landing-minima="landingMinima"
         />

@@ -27,7 +27,7 @@
     <div class="body">
       <AirportInfoTab v-if="activeTab==='info'" :airport="airport!" :runways="runways" />
       <TaxiInfoTab v-if="activeTab==='taxi'" :taxiways="taxiways" />
-      <RunwayInfoTab v-if="activeTab==='runway'" :takeoff-minima="takeoffMinima" :landing-minima="landingMinima" />
+      <RunwayInfoTab v-if="activeTab==='runway'" :runways="runways" :takeoff-minima="takeoffMinima" :landing-minima="landingMinima" />
       <AirportNotamTab v-if="activeTab==='notam'" :icao="icao" />
       <AirportFacilitiesTab v-if="activeTab==='facilities'" :icao="icao" />
     </div>
