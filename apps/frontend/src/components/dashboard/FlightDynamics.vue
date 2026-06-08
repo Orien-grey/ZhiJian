@@ -31,9 +31,12 @@ const statusFilter = ref('')
 const spotCheck = ref('')
 const activeType = ref<'all' | 'affected'>('all')
 const selectedFlight = ref<FlightItem | null>(null)
+const starVersion = ref(0)
 
 const filteredFlights = computed(() => {
-  let list = MOCK_FLIGHTS
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  void starVersion.value // 标星触发重排
+  let list = [...MOCK_FLIGHTS]
   if (activeType.value === 'affected') list = list.filter(f => f.isAffected)
   if (searchText.value) {
     const q = searchText.value.toLowerCase()
@@ -50,6 +53,11 @@ const filteredFlights = computed(() => {
     const q = spotCheck.value.toLowerCase()
     list = list.filter(f => f.flightNo.toLowerCase().includes(q) || f.registration.toLowerCase().includes(q))
   }
+  // 标星置顶 + 按计划时间排序
+  list.sort((a, b) => {
+    if (a.star !== b.star) return a.star ? -1 : 1
+    return a.scheduledTime.localeCompare(b.scheduledTime)
+  })
   return list
 })
 
@@ -62,6 +70,7 @@ const resetFilters = () => {
 
 const toggleStar = (f: FlightItem) => {
   f.star = !f.star
+  starVersion.value++
 }
 
 // 倒计时实时刷新

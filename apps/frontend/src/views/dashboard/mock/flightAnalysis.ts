@@ -152,8 +152,8 @@ const makeRestrictionZones = (depTime: string, flightMin: number): RestrictionZo
 // ============================================================
 export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   // ---- 受影响航班：完整数据 ----
-  MU5678: {
-    flightNo: 'MU5103', delayMinutes: 36, originalRoute: 'ZSSS PIMOL A593 P54 W554 SAREX ZGGG',
+  MU5201: {
+    flightNo: 'MU5201', delayMinutes: 36, originalRoute: 'ZSSS PIMOL A593 P54 W554 SAREX ZGGG',
     aircraftType: 'B738', registration: 'B-5678',
     depIcao: 'ZSSS', arrIcao: 'ZGGG',
     scheduledDeparture: '13:30', estimatedDeparture: '14:05',
@@ -175,7 +175,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  CZ9012: {
+  CZ3601: {
     flightNo: 'CZ3601', delayMinutes: 21, originalRoute: 'ZGGG QF A461 P60 CKA ZUUU',
     aircraftType: 'A330', registration: 'B-9012',
     depIcao: 'ZGGG', arrIcao: 'ZUUU',
@@ -195,7 +195,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  HU3456: {
+  CA1507: {
     flightNo: 'CA1507', delayMinutes: 46, originalRoute: 'ZBAA CDY B215 JB W66 ZLXY',
     aircraftType: 'B789', registration: 'B-3456',
     depIcao: 'ZBAA', arrIcao: 'ZLXY',
@@ -216,7 +216,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  CA8025: {
+  MU5301: {
     flightNo: 'MU5301', delayMinutes: 56, originalRoute: 'ZSPD SHR A599 WYN H25 ZGGG',
     aircraftType: 'A359', registration: 'B-8025',
     depIcao: 'ZSPD', arrIcao: 'ZGGG',
@@ -236,8 +236,8 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
   },
 
   // ---- 其余航班：简化分析数据 ----
-  CA1234: {
-    flightNo: 'CA1501', delayMinutes: 0, originalRoute: 'ZBAA VM B208 ZSSS',
+  CZ3101: {
+    flightNo: 'CZ3101', delayMinutes: 0, originalRoute: 'ZBAA VM B208 ZSSS',
     aircraftType: 'A320', registration: 'B-1234',
     depIcao: 'ZBAA', arrIcao: 'ZSSS',
     scheduledDeparture: '13:00', estimatedDeparture: '13:00',
@@ -249,8 +249,8 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     alternateRoutes: [],
   },
 
-  '3U8601': {
-    flightNo: '3U8601', delayMinutes: 0, originalRoute: 'ZUUU CZH B213 ZUCK',
+  HU7801: {
+    flightNo: 'HU7801', delayMinutes: 0, originalRoute: 'ZUUU CZH B213 ZUCK',
     aircraftType: 'A319', registration: 'B-7890',
     depIcao: 'ZUUU', arrIcao: 'ZUCK',
     scheduledDeparture: '14:30', estimatedDeparture: '14:30',
@@ -264,7 +264,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
 
   // ---- 其余受影响航班：完整数据 ----
 
-  MU1357: {
+  CZ3401: {
     flightNo: 'CZ3401', delayMinutes: 51, originalRoute: 'ZGGG P270 A599 SHZ G204 ZSPD',
     aircraftType: 'B77W', registration: 'B-1357',
     depIcao: 'ZGGG', arrIcao: 'ZSPD',
@@ -285,7 +285,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  HU9876: {
+  HU7401: {
     flightNo: 'HU7401', delayMinutes: 64, originalRoute: 'ZJHK LH R339 BHY W70 ZBAA',
     aircraftType: 'B788', registration: 'B-9876',
     depIcao: 'ZJHK', arrIcao: 'ZBAA',
@@ -305,7 +305,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  CZ3579: {
+  CZ3301: {
     flightNo: 'CZ3301', delayMinutes: 30, originalRoute: 'ZSAM FQG A470 P169 ZGGG',
     aircraftType: 'A321', registration: 'B-3579',
     depIcao: 'ZSAM', arrIcao: 'ZGGG',
@@ -324,7 +324,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  MU8080: {
+  MU5701: {
     flightNo: 'MU5701', delayMinutes: 40, originalRoute: 'ZSHC SHR G204 P250 W554 ZBAA',
     aircraftType: 'A320', registration: 'B-8080',
     depIcao: 'ZSHC', arrIcao: 'ZBAA',
@@ -365,7 +365,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  CZ3030: {
+  CZ3901: {
     flightNo: 'CZ3901', delayMinutes: 46, originalRoute: 'ZGGG YIN A461 VYK ZBTJ',
     aircraftType: 'A333', registration: 'B-3030',
     depIcao: 'ZGGG', arrIcao: 'ZBTJ',
@@ -385,7 +385,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  HU5050: {
+  HU7601: {
     flightNo: 'HU7601', delayMinutes: 25, originalRoute: 'ZJHK LH R339 BHY W30 ZLXY',
     aircraftType: 'B789', registration: 'B-5050',
     depIcao: 'ZJHK', arrIcao: 'ZLXY',
@@ -404,7 +404,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  MU7070: {
+  MU5901: {
     flightNo: 'MU5901', delayMinutes: 70, originalRoute: 'ZSSS PIMOL A593 P54 W554 ZPPP',
     aircraftType: 'B77W', registration: 'B-7070',
     depIcao: 'ZSSS', arrIcao: 'ZPPP',
@@ -444,7 +444,7 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
     ],
   },
 
-  MU1314: {
+  HU7701: {
     flightNo: 'HU7701', delayMinutes: 60, originalRoute: 'ZSPD PIMOL A593 WHA B330 ZUUU',
     aircraftType: 'B788', registration: 'B-1314',
     depIcao: 'ZSPD', arrIcao: 'ZUUU',
@@ -463,6 +463,61 @@ export const MOCK_ANALYSIS: Record<string, FlightAnalysisData> = {
       { id: 'alt2', name: 'MU1314N2', route: 'ZSPD HSN G204 P88 W24 ZUUU', waypoints: ['HSN', 'P88'], distance: 1120, affectedWaypoints: [], fuelDelta: '+25min' },
       { id: 'alt3', name: 'MU1314N3', route: 'ZSPD PIMOL W161 P270 H18 ZUUU', waypoints: ['PIMOL', 'P270'], distance: 1200, affectedWaypoints: ['PIMOL'], fuelDelta: '+35min' },
     ],
+  },
+  // ---- 补充受影响的航班 ----
+  MU5401: {
+    flightNo:'MU5401', delayMinutes:42, originalRoute:'ZSPD SHZ B330 CZH ZUUU',
+    aircraftType:'A333', registration:'B-6108', depIcao:'ZSPD', arrIcao:'ZUUU',
+    scheduledDeparture:'10:00', estimatedDeparture:'10:42',
+    timeline: makeTimeline('10:00', 190, [{ label:'SHZ',offsetMin:20,affected:true },{ label:'B330',offsetMin:50 },{ label:'CZH',offsetMin:90,affected:true },{ label:'ZW',offsetMin:120 },{ label:'B213',offsetMin:148 },{ label:'ZUUU',offsetMin:172 }]),
+    altitudeProfile: makeAltProfile('10:00', 190, 350, 0),
+    restrictionZones: [{ notamRef:'A2288/26', startTime:'10:15', endTime:'11:10', minAlt:220, maxAlt:360, label:'ZSPD离场区 A2288/26' }],
+    alternateRoutes: [{ id:'m01', name:'MU5401A1', route:'ZSPD HSN W161 P270 G327 ZUUU', waypoints:['HSN','P270'], distance:1050, affectedWaypoints:[], fuelDelta:'+18min' }],
+  },
+  CZ3201: {
+    flightNo:'CZ3201', delayMinutes:28, originalRoute:'ZSNJ HFE W50 P250 B330 ZUUU',
+    aircraftType:'A321', registration:'B-6639', depIcao:'ZSNJ', arrIcao:'ZUUU',
+    scheduledDeparture:'11:55', estimatedDeparture:'12:23',
+    timeline: makeTimeline('11:55', 155, [{ label:'HFE',offsetMin:18,affected:true },{ label:'W50',offsetMin:42 },{ label:'P250',offsetMin:68 },{ label:'B330',offsetMin:95 },{ label:'CZH',offsetMin:120 },{ label:'ZUUU',offsetMin:140 }]),
+    altitudeProfile: makeAltProfile('11:55', 155, 330, 1),
+    restrictionZones: [{ notamRef:'A2411/26', startTime:'12:10', endTime:'13:00', minAlt:150, maxAlt:300, label:'ZSNJ离场区 A2411/26' }],
+    alternateRoutes: [{ id:'n01', name:'CZ3201B1', route:'ZSNJ NKG W50 P200 G212 ZUUU', waypoints:['NKG','P200'], distance:890, affectedWaypoints:[], fuelDelta:'+12min' }],
+  },
+  CA1403: {
+    flightNo:'CA1403', delayMinutes:35, originalRoute:'ZSPD PIMOL A593 P54 W66 ZLXY',
+    aircraftType:'A359', registration:'B-32B8', depIcao:'ZSPD', arrIcao:'ZLXY',
+    scheduledDeparture:'12:15', estimatedDeparture:'12:50',
+    timeline: makeTimeline('12:15', 145, [{ label:'PIMOL',offsetMin:18,affected:true },{ label:'A593',offsetMin:40 },{ label:'P54',offsetMin:55 },{ label:'W66',offsetMin:80,affected:true },{ label:'P88',offsetMin:100 },{ label:'ZLXY',offsetMin:128 }]),
+    altitudeProfile: makeAltProfile('12:15', 145, 370, 2),
+    restrictionZones: [{ notamRef:'A2288/26', startTime:'12:30', endTime:'13:20', minAlt:200, maxAlt:380, label:'ZSPD离场区 A2288/26' }],
+    alternateRoutes: [{ id:'o01', name:'CA1403C1', route:'ZSPD SHZ B221 P88 G327 ZLXY', waypoints:['SHZ','P88'], distance:720, affectedWaypoints:[], fuelDelta:'+15min' }],
+  },
+  HU7201: {
+    flightNo:'HU7201', delayMinutes:55, originalRoute:'ZJHK LH R339 BHY W30 ZLXY',
+    aircraftType:'B789', registration:'B-209H', depIcao:'ZJHK', arrIcao:'ZLXY',
+    scheduledDeparture:'12:40', estimatedDeparture:'13:35',
+    timeline: makeTimeline('12:40', 190, [{ label:'LH',offsetMin:15,affected:true },{ label:'R339',offsetMin:38 },{ label:'BHY',offsetMin:55 },{ label:'W30',offsetMin:90,affected:true },{ label:'P200',offsetMin:125 },{ label:'ZLXY',offsetMin:172 }]),
+    altitudeProfile: makeAltProfile('12:40', 190, 370, 3),
+    restrictionZones: [{ notamRef:'A2291/26', startTime:'12:50', endTime:'14:00', minAlt:180, maxAlt:350, label:'海口台风区 A2291/26' }],
+    alternateRoutes: [{ id:'p01', name:'HU7201D1', route:'ZJHK SAMAS A202 P80 G212 ZLXY', waypoints:['SAMAS','P80'], distance:1280, affectedWaypoints:[], fuelDelta:'+22min' }],
+  },
+  CA1801: {
+    flightNo:'CA1801', delayMinutes:15, originalRoute:'ZBAA CDY B215 JB W66 ZLXY',
+    aircraftType:'B789', registration:'B-20D1', depIcao:'ZBAA', arrIcao:'ZLXY',
+    scheduledDeparture:'14:15', estimatedDeparture:'14:30',
+    timeline: makeTimeline('14:15', 115, [{ label:'CDY',offsetMin:12 },{ label:'B215',offsetMin:30 },{ label:'JB',offsetMin:48,affected:true },{ label:'W66',offsetMin:68 },{ label:'P80',offsetMin:85 },{ label:'ZLXY',offsetMin:100 }]),
+    altitudeProfile: makeAltProfile('14:15', 115, 280, 0),
+    restrictionZones: [{ notamRef:'A2253/26', startTime:'14:25', endTime:'15:00', minAlt:120, maxAlt:300, label:'ZBAA禁航区 A2253/26' }],
+    alternateRoutes: [{ id:'q01', name:'CA1801E1', route:'ZBAA VM B208 P120 G45 ZLXY', waypoints:['VM','P120'], distance:650, affectedWaypoints:[], fuelDelta:'+10min' }],
+  },
+  CZ3103: {
+    flightNo:'CZ3103', delayMinutes:38, originalRoute:'ZGGG YIN A461 P60 ZSYT',
+    aircraftType:'A321', registration:'B-6973', depIcao:'ZGGG', arrIcao:'ZSYT',
+    scheduledDeparture:'19:30', estimatedDeparture:'20:08',
+    timeline: makeTimeline('19:30', 170, [{ label:'YIN',offsetMin:22,affected:true },{ label:'A461',offsetMin:48 },{ label:'P60',offsetMin:70,affected:true },{ label:'P45',offsetMin:100 },{ label:'W37',offsetMin:128 },{ label:'ZSYT',offsetMin:152 }]),
+    altitudeProfile: makeAltProfile('19:30', 170, 350, 1),
+    restrictionZones: [{ notamRef:'A2255/26', startTime:'19:45', endTime:'20:30', minAlt:200, maxAlt:360, label:'ZGGG离场区 A2255/26' }],
+    alternateRoutes: [{ id:'r01', name:'CZ3103F1', route:'ZGGG LMN G471 P88 W34 ZSYT', waypoints:['LMN','P88'], distance:950, affectedWaypoints:[], fuelDelta:'+20min' }],
   },
 }
 

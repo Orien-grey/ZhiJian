@@ -28,8 +28,8 @@ defineProps<{
 <style scoped>
 .banner {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; flex-shrink: 0;
-  background: linear-gradient(90deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.04) 50%, rgba(239,68,68,0.02) 100%);
+  padding: 13px 20px; flex-shrink: 0;
+  background: linear-gradient(90deg, rgba(239,68,68,0.11) 0%, rgba(239,68,68,0.03) 50%, rgba(239,68,68,0.02) 100%);
   border-bottom: 1px solid rgba(239,68,68,0.15);
 }
 .banner-left { display: flex; align-items: center; gap: 14px; }

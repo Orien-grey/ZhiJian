@@ -161,21 +161,21 @@ const onThumbDown = (e: MouseEvent) => {
 </script>
 
 <style scoped>
-.section { padding: 18px 20px; border-bottom: 1px solid rgba(0,212,255,0.05); }
+.section { padding: 18px 19px; border-bottom: 1px solid rgba(0,212,255,0.05); }
 .sec-title { font-size: 11px; font-weight: 600; color: #64748b; margin: 0 0 14px; letter-spacing: 0.06em; text-transform: uppercase; }
 
 /* 轨道 */
 .slider-track {
   position: relative; height: 36px; margin: 0 4px 6px;
   background: rgba(255,255,255,0.02); border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.04); cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.03); cursor: pointer;
 }
 
 /* 计划条 */
 .sched-bar {
   position: absolute; top: 9px; height: 18px; border-radius: 4px 0 0 4px;
   background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-  box-shadow: 0 0 12px rgba(59,130,246,0.3);
+  box-shadow: 0 0 12px rgba(59,130,246,0.28);
   min-width: 4px;
 }
 
