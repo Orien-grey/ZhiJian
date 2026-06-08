@@ -54,6 +54,15 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- 悬停情报浮窗 -->
+    <MapTooltip
+      :visible="tip.show"
+      :x="tip.x" :y="tip.y"
+      :type="tip.type"
+      :wp="tip.wp" :rt="tip.rt" :cz="tip.cz" :pz="tip.pz" :ap="tip.ap"
+      @close="tip.show = false"
+    />
   </div>
 </template>
 
@@ -64,6 +73,8 @@ import {
   MOCK_WAYPOINTS, MOCK_ROUTES, MOCK_POLYGON_ZONES, MOCK_CIRCLE_ZONES,
   MOCK_FIR_BOUNDARIES, MOCK_MAP_STATS, type PolygonZone,
 } from '@/views/dashboard/mock/mapData'
+import { WAYPOINT_DETAILS, ROUTE_DETAILS, AIRPORT_DETAILS, type WaypointDetail, type RouteDetail, type ZoneDetail, type AirportDetail } from '@/views/dashboard/mock/mapTooltip'
+import MapTooltip from './MapTooltip.vue'
 
 const props = withDefaults(defineProps<{
   filters?: { prohibited: boolean; restricted: boolean; waypoints: boolean; routes: boolean; airports: boolean; allAirports: boolean }
@@ -75,6 +86,13 @@ const chartRef = ref<HTMLDivElement | null>(null)
 let instance: echarts.ECharts | null = null
 const selectedZone = ref<PolygonZone | null>(null)
 const mapStats = MOCK_MAP_STATS
+
+// ---- 悬停浮窗状态 ----
+const tip = ref({ show:false, x:0, y:0, type:'' as string, wp:null as WaypointDetail|null, rt:null as RouteDetail|null, cz:null as ZoneDetail|null, pz:null as ZoneDetail|null, ap:null as AirportDetail|null })
+
+const zoneMap: Record<string,ZoneDetail> = {}
+MOCK_CIRCLE_ZONES.forEach(z => { zoneMap[z.name] = { id:z.id,name:z.name,type:'圆形限制区',notamRef:z.notams[0]?.notamId||'',effective:z.notams[0]?.effectiveStart+'~'+z.notams[0]?.effectiveEnd||'',altitude:z.notams[0]?.altitudeLow+'→'+z.notams[0]?.altitudeHigh||'',radius:z.radius,controllingUnit:'空军航管中心',contactFreq:'132.50 MHz',detail:z.notams[0]?.content||'',affectedRoutes:z.notams[0]?.affectedRoutes||[] }})
+MOCK_POLYGON_ZONES.forEach(z => { zoneMap[z.name] = { id:z.id,name:z.name,type:'禁航区',notamRef:z.notams[0]?.notamId||'',effective:z.notams[0]?.effectiveStart+'~'+z.notams[0]?.effectiveEnd||'',altitude:z.notams[0]?.altitudeLow+'→'+z.notams[0]?.altitudeHigh||'',controllingUnit:'空军航管中心',contactFreq:'132.50 MHz',detail:z.notams[0]?.content||'',affectedRoutes:z.notams[0]?.affectedRoutes||[] }})
 
 // 时间维度驱动统计卡变化
 const timeMultiplier = computed(() => props.activeTime === 'tomorrow' ? 1.15 : props.activeTime === 'both' ? 1.3 : 1)
@@ -149,7 +167,7 @@ function render() {
       }
       return coords.length > 0 ? {
         type: 'lines', coordinateSystem: 'geo', polyline: true, zlevel: 1,
-        data: [{ coords }],
+        data: [{ coords, name: route.name }],
         lineStyle: { color: 'rgba(0,212,255,0.06)', width: 1 },
         emphasis: { lineStyle: { color: 'rgba(0,212,255,0.5)', width: 2.5 } },
         effect: { show: true, period: 5 + i * 0.6, trailLength: 0.1, symbol: 'circle', symbolSize: 2, color: 'rgba(0,212,255,0.38)' },
@@ -157,33 +175,33 @@ function render() {
     }).filter(Boolean) : []),
     // 航路点（受过滤控制）
     ...(filters.waypoints ? [{
-      type: 'scatter', coordinateSystem: 'geo', zlevel: 3, silent: true,
+      type: 'scatter', coordinateSystem: 'geo', zlevel: 3,
       data: MOCK_WAYPOINTS.map(w => ({ name: w.code, value: [w.lng, w.lat] })),
       symbolSize: 5, itemStyle: { color: '#fff', borderColor: 'rgba(0,180,220,0.58)', borderWidth: 1.5 },
       label: { show: true, position: 'right', color: '#94a3b8', fontSize: 9, fontFamily: 'monospace', distance: 4 },
     }] : []),
     // 圆形限制区（受限制区过滤，含同心圆雷达环）
     ...(filters.restricted ? MOCK_CIRCLE_ZONES.flatMap(z => [
-      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1, silent:true,
-        data:[{ coords:circlePts(z.center, z.radius*1.5) }],
+      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1,
+        data:[{ coords:circlePts(z.center, z.radius*1.5), name: z.name }],
         lineStyle:{ color:'rgba(56,189,248,0.05)', width:1, type:'dashed' } },
-      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1, silent:true,
-        data:[{ coords:circlePts(z.center, z.radius*0.6) }],
+      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1,
+        data:[{ coords:circlePts(z.center, z.radius*0.6), name: z.name }],
         lineStyle:{ color:'rgba(56,189,248,0.1)', width:1 } },
-      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:2, silent:true,
-        data:[{ coords:circlePts(z.center, z.radius) }],
+      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:2,
+        data:[{ coords:circlePts(z.center, z.radius), name: z.name }],
         lineStyle:{ color:'rgba(56,189,248,0.48)', width:2 } },
-      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:1, silent:true,
+      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:1,
         data:[[z.center[0], z.center[1], 1] as [number,number,number]],
         symbolSize:40, itemStyle:{ color:'rgba(56,189,248,0.05)' } },
-      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:2, silent:true,
+      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:2,
         data:[{ name:z.name, value:[z.center[0], z.center[1], 1] as [number,number,number] }],
         symbolSize:8, itemStyle:{ color:'rgba(56,189,248,0.6)', borderColor:'#fff', borderWidth:1 },
         label:{ show:true, formatter:z.name, color:'#7dd3fc', fontSize:9, position:'top', distance:8 } },
     ]) : []),
     // 机场标记（受运行机场/所有机场过滤）
     ...((filters.airports || filters.allAirports) ? [{
-      type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 4, silent: true,
+      type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 4,
       data: AIRPORT_MARKERS.map(a => ({ name: a.icao, value: [a.lng, a.lat] })),
       symbolSize: 8, itemStyle: { color: '#00d4ff', borderColor: '#fff', borderWidth: 2, shadowBlur: 6, shadowColor: 'rgba(0,212,255,0.5)' },
       label: { show: true, position: 'right', color: '#e2e8f0', fontSize: 10, fontFamily: 'monospace', distance: 6 },
@@ -196,14 +214,14 @@ function render() {
       return [
         // 半透明填充多边形（用顶点散点模拟面）
         ...z.coords.map(c => ({
-          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1, silent: true,
-          data: [[...c, 1] as [number, number, number]],
+          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1,
+          data: [{ name: z.name, value: [...c, 1] as [number, number, number] }],
           symbolSize: 6, itemStyle: { color: 'rgba(239,68,68,0.12)' },
         })),
         // 中心大面积光晕
         {
-          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1, silent: true,
-          data: [[cx, cy, 1] as [number, number, number]],
+          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1,
+          data: [{ name: z.name, value: [cx, cy, 1] as [number, number, number] }],
           symbolSize: 50, itemStyle: { color: 'rgba(239,68,68,0.1)' },
         },
         // 红色边框
@@ -254,6 +272,31 @@ onMounted(async () => {
     }
   })
   instance?.on('dblclick', () => { instance?.dispatchAction({ type: 'restore' }) })
+
+  // 悬停事件
+  instance?.on('mouseover', (p: any) => {
+    const e = (p as any).event?.event ?? (p as any).event
+    if (!e) return
+    const x = (e as any).clientX, y = (e as any).clientY
+    // 航路点
+    if (p.seriesType === 'scatter' && p.name && WAYPOINT_DETAILS[p.name]) {
+      tip.value = { show:true, x, y, type:'waypoint', wp:WAYPOINT_DETAILS[p.name], rt:null, cz:null, pz:null, ap:null }
+    }
+    // 航路
+    else if (p.seriesType === 'lines' && p.name && ROUTE_DETAILS[p.name]) {
+      tip.value = { show:true, x, y, type:'route', wp:null, rt:ROUTE_DETAILS[p.name], cz:null, pz:null, ap:null }
+    }
+    // 圆形/多边形限制区
+    else if ((p.seriesType === 'lines' || p.seriesType === 'scatter') && p.data?.name && zoneMap[p.data.name]) {
+      const z = zoneMap[p.data.name]
+      tip.value = { show:true, x, y, type:z.type==='禁航区'?'polygon':'circle', wp:null, rt:null, cz:z.type==='圆形限制区'?z:null, pz:z.type==='禁航区'?z:null, ap:null }
+    }
+    // 机场
+    else if (p.seriesType === 'scatter' && p.name && AIRPORT_DETAILS[p.name]) {
+      tip.value = { show:true, x, y, type:'airport', wp:null, rt:null, cz:null, pz:null, ap:AIRPORT_DETAILS[p.name] }
+    }
+  })
+  instance?.on('mouseout', () => { tip.value = { ...tip.value, show:false } })
 
   // 监听容器尺寸变化，拖拽面板时自动适配地图大小
   if (chartRef.value) {
