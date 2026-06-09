@@ -4,26 +4,41 @@
     <div class="stats-overlay">
       <div class="stats-row">
         <div class="stat-card">
-          <span v-for="r in displayStats.region" :key="r.name" class="stat-item">
-            <span class="stat-name">{{ r.name }}</span>
-            <span class="stat-count">{{ r.count }}</span>
-            <span class="stat-change" :class="r.change >= 0 ? 'up' : 'down'">{{ r.change >= 0 ? '+' : '' }}{{ r.change }}</span>
-          </span>
+          <div class="stat-card-inner">
+            <div class="stat-corner tl" /><div class="stat-corner tr" /><div class="stat-corner bl" /><div class="stat-corner br" />
+            <div class="stat-scanline" />
+            <div class="stat-grid" />
+            <span v-for="r in displayStats.region" :key="r.name" class="stat-item">
+              <span class="stat-name">{{ r.name }}</span>
+              <span class="stat-count">{{ r.count }}</span>
+              <span class="stat-change" :class="r.change >= 0 ? 'up' : 'down'">{{ r.change >= 0 ? '+' : '' }}{{ r.change }}</span>
+            </span>
+          </div>
         </div>
         <div class="stat-card">
-          <span class="stat-label">近24H处理</span>
-          <span class="stat-big">{{ displayStats.notam24h }}</span>
-          <span class="stat-unit">条</span>
-          <span class="stat-divider">|</span>
-          <span class="stat-label">有效禁航</span>
-          <span class="stat-big">{{ displayStats.activeProhibited }}</span>
-          <span class="stat-unit">条</span>
+          <div class="stat-card-inner">
+            <div class="stat-corner tl" /><div class="stat-corner tr" /><div class="stat-corner bl" /><div class="stat-corner br" />
+            <div class="stat-scanline" />
+            <div class="stat-grid" />
+            <span class="stat-label">近24H处理</span>
+            <span class="stat-big">{{ displayStats.notam24h }}</span>
+            <span class="stat-unit">条</span>
+            <span class="stat-divider" />
+            <span class="stat-label">有效禁航</span>
+            <span class="stat-big">{{ displayStats.activeProhibited }}</span>
+            <span class="stat-unit">条</span>
+          </div>
         </div>
         <div class="stat-card">
-          <span v-for="c in displayStats.international" :key="c.name" class="stat-item">
-            <span class="stat-name">{{ c.name }}</span>
-            <span class="stat-count">{{ c.count }}</span>
-          </span>
+          <div class="stat-card-inner">
+            <div class="stat-corner tl" /><div class="stat-corner tr" /><div class="stat-corner bl" /><div class="stat-corner br" />
+            <div class="stat-scanline" />
+            <div class="stat-grid" />
+            <span v-for="c in displayStats.international" :key="c.name" class="stat-item">
+              <span class="stat-name">{{ c.name }}</span>
+              <span class="stat-count">{{ c.count }}</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -91,8 +106,8 @@ const mapStats = MOCK_MAP_STATS
 const tip = ref({ show:false, x:0, y:0, type:'' as string, wp:null as WaypointDetail|null, rt:null as RouteDetail|null, cz:null as ZoneDetail|null, pz:null as ZoneDetail|null, ap:null as AirportDetail|null })
 
 const zoneMap: Record<string,ZoneDetail> = {}
-MOCK_CIRCLE_ZONES.forEach(z => { zoneMap[z.name] = { id:z.id,name:z.name,type:'圆形限制区',notamRef:z.notams[0]?.notamId||'',effective:z.notams[0]?.effectiveStart+'~'+z.notams[0]?.effectiveEnd||'',altitude:z.notams[0]?.altitudeLow+'→'+z.notams[0]?.altitudeHigh||'',radius:z.radius,controllingUnit:'空军航管中心',contactFreq:'132.50 MHz',detail:z.notams[0]?.content||'',affectedRoutes:z.notams[0]?.affectedRoutes||[] }})
-MOCK_POLYGON_ZONES.forEach(z => { zoneMap[z.name] = { id:z.id,name:z.name,type:'禁航区',notamRef:z.notams[0]?.notamId||'',effective:z.notams[0]?.effectiveStart+'~'+z.notams[0]?.effectiveEnd||'',altitude:z.notams[0]?.altitudeLow+'→'+z.notams[0]?.altitudeHigh||'',controllingUnit:'空军航管中心',contactFreq:'132.50 MHz',detail:z.notams[0]?.content||'',affectedRoutes:z.notams[0]?.affectedRoutes||[] }})
+MOCK_CIRCLE_ZONES.forEach(z => { zoneMap[z.name] = { id:z.id,name:z.name,type:'圆形限制区',notamRef:z.notams[0]?.notamId||'',effective:z.notams[0]?.effectiveStart+'~'+z.notams[0]?.effectiveEnd||'',altitude:z.notams[0]?.altitudeLow+'→'+z.notams[0]?.altitudeHigh||'',radius:z.radius,controllingUnit:'东部战区空军航管中心',contactFreq:'132.50 MHz',detail:z.notams[0]?.content||'',affectedRoutes:z.notams[0]?.affectedRoutes||[],purpose:'实弹射击训练' }})
+MOCK_POLYGON_ZONES.forEach(z => { zoneMap[z.name] = { id:z.id,name:z.name,type:'禁航区',notamRef:z.notams[0]?.notamId||'',effective:z.notams[0]?.effectiveStart+'~'+z.notams[0]?.effectiveEnd||'',altitude:z.notams[0]?.altitudeLow+'→'+z.notams[0]?.altitudeHigh||'',controllingUnit:'空军作战指挥中心',contactFreq:'128.75 MHz',detail:z.notams[0]?.content||'',affectedRoutes:z.notams[0]?.affectedRoutes||[],purpose:'联合军事演习' }})
 
 // 时间维度驱动统计卡变化
 const timeMultiplier = computed(() => props.activeTime === 'tomorrow' ? 1.15 : props.activeTime === 'both' ? 1.3 : 1)
@@ -322,32 +337,155 @@ onUnmounted(() => {
 .map-wrapper { position: relative; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .chart-container { flex: 1; min-height: 0; }
 
-.stats-overlay { position: absolute; top: 10px; left: 16px; right: 16px; z-index: 10; pointer-events: none; }
-.stats-row { display: flex; gap: 8px; justify-content: center; }
-.stat-card { background: rgba(10,18,40,0.85); border: 1px solid rgba(0,212,255,0.12); border-radius: 10px; padding: 6px 12px; backdrop-filter: blur(12px); display: flex; align-items: center; gap: 8px; pointer-events: auto; }
-.stat-item { display: flex; align-items: center; gap: 3px; font-size: 11px; }
-.stat-name { color: #64748b; }
-.stat-count { font-weight: 700; font-family: 'IBM Plex Mono', monospace; color: #e2e8f0; }
-.stat-change { font-size: 10px; font-weight: 600; }
-.stat-change.up { color: #ef4444; }
-.stat-change.down { color: #10b981; }
-.stat-label { font-size: 10px; color: #64748b; }
-.stat-big { font-size: 15px; font-weight: 800; font-family: 'IBM Plex Mono', monospace; color: #00d4ff; }
-.stat-unit { font-size: 10px; color: #64748b; }
-.stat-divider { color: rgba(0,212,255,0.1); margin: 0 3px; }
+/* ── 悬浮统计卡 ── */
+.stats-overlay { position: absolute; top: 14px; left: 16px; right: 16px; z-index: 10; pointer-events: none; }
+.stats-row { display: flex; gap: 10px; justify-content: center; }
+.stat-card {
+  position: relative;
+  padding: 1px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.25), rgba(0,212,255,0.05) 40%, rgba(245,158,11,0.05) 60%, rgba(245,158,11,0.15));
+  pointer-events: auto;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+}
+.stat-card:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(0,212,255,0.1);
+}
+.stat-card-inner {
+  position: relative;
+  background: linear-gradient(165deg, rgba(8,14,36,0.97) 0%, rgba(12,22,48,0.95) 50%, rgba(6,12,30,0.97) 100%);
+  border-radius: 15px;
+  padding: 10px 18px;
+  display: flex; align-items: center; gap: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(24px);
+}
+.stat-card-inner::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,0.4) 30%, rgba(245,158,11,0.3) 70%, transparent 100%);
+}
+.stat-corner {
+  position: absolute; width: 6px; height: 6px; pointer-events: none; z-index: 3;
+  border-color: rgba(0,212,255,0.35);
+  transition: all 0.4s;
+}
+.stat-corner.tl { top: 6px; left: 6px; border-top: 1.5px solid; border-left: 1.5px solid; border-top-left-radius: 4px; }
+.stat-corner.tr { top: 6px; right: 6px; border-top: 1.5px solid; border-right: 1.5px solid; border-top-right-radius: 4px; }
+.stat-corner.bl { bottom: 6px; left: 6px; border-bottom: 1.5px solid; border-left: 1.5px solid; border-bottom-left-radius: 4px; }
+.stat-corner.br { bottom: 6px; right: 6px; border-bottom: 1.5px solid; border-right: 1.5px solid; border-bottom-right-radius: 4px; }
+.stat-card:hover .stat-corner { border-color: rgba(0,212,255,0.7); width: 10px; height: 10px; }
+.stat-scanline {
+  position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.04), transparent);
+  animation: scan-sweep 4s ease-in-out infinite;
+  pointer-events: none; z-index: 1;
+}
+.stat-grid {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0.4;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 70%);
+}
+@keyframes scan-sweep {
+  0%, 100% { left: -60%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+.stat-item { display: flex; align-items: center; gap: 4px; font-size: 11px; position: relative; z-index: 2; }
+.stat-name { color: #475569; font-weight: 600; letter-spacing: 0.04em; }
+.stat-count { font-weight: 800; font-family: 'IBM Plex Mono', monospace; color: #f8fafc; text-shadow: 0 0 16px rgba(255,255,255,0.15); }
+.stat-change { font-size: 9px; font-weight: 800; font-family: 'IBM Plex Mono', monospace; padding: 2px 6px; border-radius: 5px; letter-spacing: 0.02em; }
+.stat-change.up { color: #f87171; background: rgba(239,68,68,0.14); border: 1px solid rgba(239,68,68,0.2); }
+.stat-change.down { color: #34d399; background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.2); }
+.stat-label { font-size: 10px; color: #475569; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.stat-big { font-size: 17px; font-weight: 900; font-family: 'IBM Plex Mono', monospace; color: #00d4ff; text-shadow: 0 0 24px rgba(0,212,255,0.35), 0 0 8px rgba(0,212,255,0.2); }
+.stat-unit { font-size: 10px; color: #475569; }
+.stat-divider { width: 1px; height: 14px; background: linear-gradient(180deg, transparent, rgba(0,212,255,0.2), transparent); margin: 0 4px; }
 
-.zone-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
-.zone-modal { max-width: 500px; width: 90%; max-height: 70vh; overflow-y: auto; background: rgba(14,22,50,0.98); border: 1px solid rgba(239,68,68,0.2); border-radius: 16px; padding: 24px; box-shadow: 0 0 60px rgba(239,68,68,0.1); }
-.zone-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.zone-modal-title { font-size: 15px; font-weight: 700; color: #fca5a5; }
-.zone-close { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: none; color: #94a3b8; cursor: pointer; font-size: 14px; }
-.zone-close:hover { background: rgba(255,255,255,0.06); color: #fff; }
-.zone-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.zone-item-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
-.zone-id { font-size: 12px; font-weight: 700; color: #ef4444; font-family: 'IBM Plex Mono', monospace; }
-.zone-time { font-size: 10px; color: #64748b; }
-.zone-alt { font-size: 11px; color: #94a3b8; margin-bottom: 6px; }
-.zone-content { font-size: 12px; color: #cbd5e1; line-height: 1.6; margin: 0 0 6px; }
-.zone-routes { font-size: 10px; color: #64748b; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.zone-route { color: #00d4ff; background: rgba(0,212,255,0.1); padding: 1px 6px; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; }
+/* ── 限制区弹窗 ── */
+.zone-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px) saturate(1.2); display: flex; align-items: center; justify-content: center; }
+.zone-modal {
+  max-width: 540px; width: 90%; max-height: 70vh; overflow-y: auto;
+  background: linear-gradient(165deg, rgba(10,16,40,0.98) 0%, rgba(14,24,52,0.96) 50%, rgba(8,14,36,0.98) 100%);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow:
+    0 0 100px rgba(239,68,68,0.12),
+    0 30px 80px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  position: relative; overflow: hidden;
+  animation: modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.zone-modal::before {
+  content: '';
+  position: absolute; top: 0; left: 20%; right: 20%; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(239,68,68,0.8), rgba(245,158,11,0.5), transparent);
+  border-radius: 1px;
+}
+.zone-modal::after {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 30% at 50% 0%, rgba(239,68,68,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 100%, rgba(245,158,11,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+.zone-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; position: relative; z-index: 1; }
+.zone-modal-title { font-size: 18px; font-weight: 900; color: #fca5a5; letter-spacing: 0.04em; text-shadow: 0 0 30px rgba(239,68,68,0.25); }
+.zone-close {
+  width: 36px; height: 36px; border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #64748b; cursor: pointer; font-size: 15px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.zone-close::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at center, rgba(239,68,68,0.2) 0%, transparent 70%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.zone-close:hover { border-color: rgba(239,68,68,0.4); color: #fca5a5; transform: rotate(135deg) scale(1.1); }
+.zone-close:hover::before { opacity: 1; }
+.zone-item {
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  position: relative; z-index: 1;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.zone-item:hover {
+  background: rgba(255,255,255,0.025);
+  margin: 0 -16px; padding-left: 16px; padding-right: 16px;
+  border-radius: 14px;
+  border-bottom-color: transparent;
+}
+.zone-item:last-child { border-bottom: none; }
+.zone-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.zone-id { font-size: 12px; font-weight: 900; color: #ef4444; font-family: 'IBM Plex Mono', monospace; text-shadow: 0 0 16px rgba(239,68,68,0.3); letter-spacing: 0.02em; }
+.zone-time { font-size: 10px; color: #475569; font-family: 'IBM Plex Mono', monospace; background: rgba(100,116,139,0.08); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(100,116,139,0.1); }
+.zone-alt { font-size: 11px; color: #64748b; margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; display: flex; align-items: center; gap: 6px; }
+.zone-alt::before { content: '↕'; color: rgba(0,212,255,0.4); font-size: 10px; }
+.zone-content { font-size: 12px; color: #94a3b8; line-height: 1.8; margin: 0 0 12px; }
+.zone-routes { font-size: 10px; color: #475569; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.zone-route {
+  color: #38bdf8; background: rgba(56,189,248,0.08);
+  padding: 3px 10px; border-radius: 6px;
+  font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 9px;
+  border: 1px solid rgba(56,189,248,0.15);
+  transition: all 0.25s; letter-spacing: 0.02em;
+}
+.zone-route:hover { background: rgba(56,189,248,0.18); border-color: rgba(56,189,248,0.35); box-shadow: 0 0 12px rgba(56,189,248,0.15); transform: translateY(-1px); }
 </style>
