@@ -76,7 +76,10 @@ const landingMinima = computed(() => MOCK_LANDING_MINIMA[props.icao] || [])
 
 <style scoped>
 .overlay {
-  position: absolute; inset: 0; z-index: 35;
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 320px; right: 360px;
+  z-index: 35;
   display: flex; flex-direction: column;
   background:
     radial-gradient(ellipse 600px 400px at 20% 0%, rgba(0, 168, 255, 0.05), transparent 70%),
