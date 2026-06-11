@@ -123,7 +123,8 @@ const routeFuels = computed(() => {
 <style scoped>
 .overlay {
   position: absolute;
-  inset: 0;
+  top: 0; bottom: 0;
+  left: 320px; right: 360px;
   z-index: 35;
   display: flex;
   flex-direction: column;

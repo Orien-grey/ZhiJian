@@ -126,7 +126,7 @@ const analysisFlightNo = ref<string | null>(null)
 
 const onFilterChange = (key: string, val: boolean) => {
   const map: Record<string, string> = {
-    '禁航通告': 'prohibited', '限制区': 'restricted', '航路点 / 导航台': 'waypoints', '航路': 'routes', '运行机场': 'airports',
+    '禁航通告': 'prohibited', '限制区': 'restricted', '航路点': 'waypoints', '航路': 'routes', '运行机场': 'airports',
   }
   const k = map[key]
   if (k) {
