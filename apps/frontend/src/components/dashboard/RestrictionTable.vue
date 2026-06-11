@@ -127,9 +127,9 @@ watch(() => props.scrollToIcao, () => {
 }
 
 .th-fixed {
-  width: 108px;
+  width: 100px;
   flex-shrink: 0;
-  padding: 10px 0;
+  padding: 7px 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -137,10 +137,10 @@ watch(() => props.scrollToIcao, () => {
 }
 
 .th-label {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   color: #64748b;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -151,14 +151,14 @@ watch(() => props.scrollToIcao, () => {
 }
 
 .th-cell {
-  min-width: 56px;
+  min-width: 44px;
   flex-shrink: 0;
-  padding: 6px 0 4px;
+  padding: 4px 0 3px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  gap: 3px;
+  gap: 2px;
   border-right: 1px solid rgba(0, 212, 255, 0.025);
   position: relative;
 }
@@ -168,10 +168,10 @@ watch(() => props.scrollToIcao, () => {
 }
 
 .th-time {
-  font-size: 8px;
+  font-size: 7px;
   font-family: 'IBM Plex Mono', 'SF Mono', monospace;
   color: #475569;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   transition: color 0.2s;
 }
 
@@ -181,7 +181,7 @@ watch(() => props.scrollToIcao, () => {
 
 .th-tick {
   width: 1px;
-  height: 6px;
+  height: 4px;
   background: rgba(0, 212, 255, 0.12);
 }
 
@@ -201,7 +201,7 @@ watch(() => props.scrollToIcao, () => {
 
 .table-row {
   display: flex;
-  min-height: 64px;
+  min-height: 44px;
   border-bottom: 1px solid rgba(0, 212, 255, 0.025);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -238,7 +238,7 @@ watch(() => props.scrollToIcao, () => {
 
 /* ===== 固定列 ===== */
 .td-fixed {
-  width: 108px;
+  width: 100px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -251,21 +251,22 @@ watch(() => props.scrollToIcao, () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 0px;
+  line-height: 1.2;
 }
 
 .td-icao {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 800;
   font-family: 'IBM Plex Mono', 'SF Mono', monospace;
   color: #e2e8f0;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
 
 .td-name {
-  font-size: 9px;
+  font-size: 8px;
   color: #64748b;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
@@ -277,7 +278,7 @@ watch(() => props.scrollToIcao, () => {
 }
 
 .td-slot {
-  min-width: 56px;
+  min-width: 44px;
   flex-shrink: 0;
   border-right: 1px solid rgba(0, 212, 255, 0.012);
 }
@@ -290,9 +291,9 @@ watch(() => props.scrollToIcao, () => {
 /* ===== 限制条 ===== */
 .bar {
   position: absolute;
-  top: 14px;
-  bottom: 12px;
-  border-radius: 6px;
+  top: 8px;
+  bottom: 7px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -327,7 +328,7 @@ watch(() => props.scrollToIcao, () => {
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 5px;
+  padding: 0 4px;
 }
 
 /* 红色系 — 机场关/不可着陆 */
@@ -395,25 +396,25 @@ watch(() => props.scrollToIcao, () => {
 }
 
 .bar-arrow {
-  font-size: 6px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-right: 3px;
+  font-size: 5px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-right: 2px;
   flex-shrink: 0;
   transition: color 0.2s;
 }
 
 .bar:hover .bar-arrow {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .bar-text {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.75);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: 'IBM Plex Mono', 'SF Mono', monospace;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 </style>

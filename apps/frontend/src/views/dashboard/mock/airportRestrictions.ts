@@ -27,42 +27,6 @@ export const RESTRICTION_LABELS: Record<RestrictionType, string> = {
   runway_no_takeoff: '跑道不可起飞', taxiway_closed: '滑行道关闭',
 }
 
-// ---- 告警时间轴（32条，06:00 ~ 次日 02:00） ----
-export const MOCK_TIMELINE: TimelineAlert[] = [
-  { id:'t01', time:'06:15', icao:'ZLLL', severity:'info', summary:'跑道检查' },
-  { id:'t02', time:'06:50', icao:'ZBTJ', severity:'warning', summary:'低能见度' },
-  { id:'t03', time:'07:20', icao:'ZBAA', severity:'critical', summary:'跑道关闭' },
-  { id:'t04', time:'07:45', icao:'ZSSS', severity:'info', summary:'导航台维护' },
-  { id:'t05', time:'08:10', icao:'ZGGG', severity:'warning', summary:'跑道不可起飞' },
-  { id:'t06', time:'08:35', icao:'ZSAM', severity:'info', summary:'PAPI 测试' },
-  { id:'t07', time:'09:00', icao:'ZUCK', severity:'warning', summary:'滑行道关闭' },
-  { id:'t08', time:'09:30', icao:'ZHCC', severity:'critical', summary:'机场不可着陆' },
-  { id:'t09', time:'10:05', icao:'ZSPD', severity:'warning', summary:'流控限制' },
-  { id:'t10', time:'10:40', icao:'ZLXY', severity:'info', summary:'频率维护' },
-  { id:'t11', time:'11:15', icao:'ZSNJ', severity:'warning', summary:'跑道不可着陆' },
-  { id:'t12', time:'11:50', icao:'ZUGY', severity:'info', summary:'GPS 干扰报告' },
-  { id:'t13', time:'12:30', icao:'ZUUU', severity:'critical', summary:'机场关闭' },
-  { id:'t14', time:'13:00', icao:'ZBAA', severity:'critical', summary:'18R 跑道关闭' },
-  { id:'t15', time:'13:25', icao:'ZSJN', severity:'critical', summary:'机场关闭' },
-  { id:'t16', time:'14:00', icao:'ZSSS', severity:'warning', summary:'跑道不可起飞' },
-  { id:'t17', time:'14:35', icao:'ZGSZ', severity:'info', summary:'停机位调整' },
-  { id:'t18', time:'15:10', icao:'ZPPP', severity:'critical', summary:'机场关闭演练' },
-  { id:'t19', time:'15:45', icao:'ZUCK', severity:'warning', summary:'TWY C 关闭' },
-  { id:'t20', time:'16:20', icao:'ZSHC', severity:'warning', summary:'跑道不可起飞' },
-  { id:'t21', time:'16:55', icao:'ZHCC', severity:'critical', summary:'机场不可备降' },
-  { id:'t22', time:'17:30', icao:'ZYTX', severity:'warning', summary:'机场不可起飞' },
-  { id:'t23', time:'18:10', icao:'ZSPD', severity:'critical', summary:'机场不可着陆' },
-  { id:'t24', time:'18:50', icao:'ZGGG', severity:'warning', summary:'02R 不可着陆' },
-  { id:'t25', time:'19:30', icao:'ZBNY', severity:'info', summary:'无人机活动' },
-  { id:'t26', time:'20:15', icao:'ZJHK', severity:'critical', summary:'台风关闭' },
-  { id:'t27', time:'21:00', icao:'ZLXY', severity:'warning', summary:'05 不可着陆' },
-  { id:'t28', time:'21:45', icao:'ZSSS', severity:'info', summary:'RNAV 程序更新' },
-  { id:'t29', time:'22:30', icao:'ZSAM', severity:'warning', summary:'消防演练' },
-  { id:'t30', time:'23:15', icao:'ZBTJ', severity:'info', summary:'除冰检查' },
-  { id:'t31', time:'23:50', icao:'ZUUU', severity:'warning', summary:'02L 不可起飞' },
-  { id:'t32', time:'00:40', icao:'ZHHH', severity:'info', summary:'新停机位启用' },
-  { id:'t33', time:'01:20', icao:'ZWWW', severity:'warning', summary:'跑道改造' },
-]
 
 // ---- 机场限制表格（15 个机场，全天分布） ----
 export const MOCK_AIRPORT_RESTRICTIONS: AirportRestriction[] = [
@@ -145,3 +109,24 @@ export const MOCK_AIRPORT_RESTRICTIONS: AirportRestriction[] = [
 
 // 时间范围：早晨 6 点到次日早晨 8 点
 export const TIME_RANGE = { start: 6, end: 32 }
+
+// ---- 告警时间轴（由上方限制数据自动生成，与彩色条一一对齐） ----
+function h2t(h: number): string {
+  const hh = Math.floor(h), mm = Math.round((h - hh) * 60)
+  return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0')
+}
+function sev(t: RestrictionType): TimelineAlert['severity'] {
+  if (t === 'airport_closed' || t === 'airport_no_land' || t === 'airport_no_alternate') return 'critical'
+  if (t === 'runway_closed' || t === 'runway_no_land') return 'critical'
+  if (t === 'runway_no_takeoff' || t === 'airport_no_takeoff') return 'warning'
+  return 'info'
+}
+const ALL_BARS = MOCK_AIRPORT_RESTRICTIONS.flatMap(a => a.restrictions.map(b => ({ ...b, icao: a.icao })))
+ALL_BARS.sort((a,b) => a.startHour - b.startHour)
+export const MOCK_TIMELINE: TimelineAlert[] = ALL_BARS.map((b, i) => ({
+  id: `t${String(i+1).padStart(2,'0')}`,
+  time: h2t(b.startHour),
+  icao: b.icao,
+  severity: sev(b.type),
+  summary: b.label,
+}))

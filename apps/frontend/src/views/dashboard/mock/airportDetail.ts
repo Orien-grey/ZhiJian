@@ -279,25 +279,11 @@ export const MOCK_RUNWAYS: Record<string, RunwaySpec[]> = {
 
 // ==================== 滑行道（所有机场共用一个示例滑行道平面图） ====================
 const SHARED_TAXIWAYS: TaxiwaySegment[] = [
-  { id:'t07', name:'RWY 07/25', path:'M 50,60 L 750,60', width:'45m', status:'open' },
-  { id:'ta', name:'A 平滑', path:'M 50,160 L 750,160', width:'28m', status:'open' },
-  { id:'tb', name:'B 平滑', path:'M 50,220 L 750,220', width:'23m', status:'open' },
-  { id:'tt', name:'T 站坪滑', path:'M 50,290 L 750,290', width:'28.5m', status:'open' },
-  { id:'ta1', name:'A1', path:'M 120,60 L 120,160', width:'28.5m', status:'open' },
-  { id:'ta2', name:'A2', path:'M 280,60 L 280,160', width:'28.5m', status:'open' },
-  { id:'ta3', name:'A3', path:'M 440,60 L 440,160', width:'28.5m', status:'closed', notamRef:'A2310/26', notamText:'A3联络道因道面维护关闭。航空器请使用A2或A4绕行。预计恢复时间：施工结束后另行通告。' },
-  { id:'ta4', name:'A4', path:'M 600,60 L 600,160', width:'28.5m', status:'open' },
-  { id:'ta5', name:'A5', path:'M 200,60 Q 210,130 280,160', width:'34m', status:'open' },
-  { id:'ta6', name:'A6', path:'M 360,60 Q 370,130 440,160', width:'34m', status:'open' },
-  { id:'ta7', name:'A7', path:'M 520,60 Q 530,130 600,160', width:'34m', status:'restricted', notamRef:'A2311/26', notamText:'A7快速出口仅限翼展<52m(C类及以下)航空器使用。D类及以上重型机请使用A4垂直联络道脱离。' },
-  { id:'tf1', name:'F', path:'M 320,160 L 320,220', width:'34m', status:'open' },
-  { id:'tl1', name:'L', path:'M 500,160 L 500,220', width:'28.5m', status:'open' },
-  { id:'tk1', name:'K', path:'M 200,220 L 200,290', width:'34m', status:'open' },
-  { id:'tk2', name:'KA', path:'M 400,220 L 400,290', width:'23m', status:'open' },
-  { id:'tk3', name:'KB', path:'M 600,220 L 600,290', width:'23m', status:'open' },
-  { id:'t08r', name:'RWY 08R/26L', path:'M 50,380 L 750,380', width:'45m', status:'open' },
-  { id:'t08l', name:'RWY 08L/26R', path:'M 50,460 L 750,460', width:'45m', status:'open' },
-  { id:'tn1', name:'N1 联络道', path:'M 400,290 L 400,380', width:'34m', status:'restricted', notamRef:'A2312/26', notamText:'⚠ 北航站区(T4)与南航站区(T1-T3)目前不互通。N1联络道仅供地面保障车辆通行，航空器禁止穿越。' },
+  { id:'tv2', name:'V2', path:'M 500,145 L 500,215', width:'28m', status:'closed', notamRef:'A2310/26', notamText:'V2联络道因道面维护关闭。航空器请使用V1或V3绕行。施工结束后另行通告。' },
+  { id:'re3', name:'R3', path:'M 780,183 L 820,215', width:'32m', status:'restricted', notamRef:'A2312/26', notamText:'R3快速脱离道道面摩擦系数不足，湿跑道条件下关闭。干跑道正常使用。' },
+  { id:'re5', name:'R5', path:'M 960,609 L 920,640', width:'32m', status:'restricted', notamRef:'A2311/26', notamText:'R5快速脱离道仅限翼展<52m(C类及以下)航空器使用。D类及以上重型机请使用V8。' },
+  { id:'tv14', name:'V14', path:'M 1100,640 L 1100,1088', width:'23m', status:'closed', notamRef:'A2313/26', notamText:'V14联络道因灯光系统故障关闭。预计明日06:00前恢复。' },
+  { id:'tv8', name:'V8', path:'M 860,215 L 860,640', width:'28m', status:'restricted', notamRef:'A2314/26', notamText:'V8联络道夜间(22:00-06:00)仅限翼展<65m航空器使用。重型机请提前申请引导车。' },
 ]
 
 export const MOCK_TAXIWAYS: Record<string, TaxiwaySegment[]> = {
