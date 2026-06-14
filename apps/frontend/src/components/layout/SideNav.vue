@@ -45,6 +45,7 @@ const auth = useAuthStore();
 
 const navItems = [
   { label: "总览", to: "/" },
+  { label: "情报看板", to: "/dashboard" },
   { label: "NOTAM 中心", to: "/notam" },
   { label: "地理情报", to: "/maps" },
   { label: "航路规划", to: "/routes" },

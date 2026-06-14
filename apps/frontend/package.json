@@ -14,6 +14,7 @@
     "panda:gen": "panda codegen && panda cssgen -o src/styled-system/styles.css"
   },
   "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
     "@vicons/fluent": "^0.13.0",
     "axios": "^1.7.7",
     "echarts": "^5.5.1",
@@ -27,10 +28,10 @@
   },
   "devDependencies": {
     "@pandacss/dev": "^1.8.1",
+    "@types/bun": "latest",
     "@vitejs/plugin-vue": "^5.1.4",
     "@vue/tsconfig": "^0.8.1",
     "typescript": "^5.6.3",
-    "vite": "^5.4.8",
-    "@types/bun": "latest"
+    "vite": "^5.4.8"
   }
 }

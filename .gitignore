@@ -125,3 +125,6 @@ config/local.*
 # 其他
 .codex.md
 apps/backend/app/data/user_records.json
+
+# Claude Code
+.claude/
