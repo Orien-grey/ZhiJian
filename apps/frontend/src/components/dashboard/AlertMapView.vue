@@ -18,9 +18,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, onUnmounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
+import 'echarts-extension-amap'  // 引入高德地图扩展（注册扩展）
+import AMapLoader from '@amap/amap-jsapi-loader'  // 使用官方加载器加载API
 import { css } from '@/styled-system/css'
+import { AMAP_KEY, AMAP_STYLE } from '@/config/amap'
 import type { AeroAlert } from '@/views/dashboard/mock/dashboardData'
 
 const props = defineProps<{ alerts: AeroAlert[]; alertCount: number }>()
@@ -86,7 +89,7 @@ function bezierCoords(from: [number, number], to: [number, number]): [number, nu
 function buildOptions(): echarts.EChartsOption {
   const routeSeries = FLIGHT_ROUTES.map((route, idx) => ({
     type: 'lines' as const,
-    coordinateSystem: 'geo' as const,
+    coordinateSystem: 'amap' as const,
     polyline: true,
     data: [{ coords: bezierCoords(route.fromCoord, route.toCoord) }],
     lineStyle: { color: 'rgba(0, 212, 255, 0.08)', width: Math.max(0.5, route.count / 16), type: 'solid' as const },
@@ -101,7 +104,7 @@ function buildOptions(): echarts.EChartsOption {
   FLIGHT_ROUTES.forEach(r => { airportSet.add(r.from); airportSet.add(r.to) })
 
   const airportSeries = {
-    name: '机场', type: 'scatter' as const, coordinateSystem: 'geo' as const,
+    name: '机场', type: 'scatter' as const, coordinateSystem: 'amap' as const,
     data: Array.from(airportSet).map(code => ({
       name: code, value: [...AIRPORT[code], 1] as [number, number, number],
     })),
@@ -128,17 +131,21 @@ function buildOptions(): echarts.EChartsOption {
 
   return {
     backgroundColor: 'transparent',
-    geo: {
-      map: 'china', roam: true, zoom: 1.25, center: [104.5, 36], aspectScale: 0.85,
-      itemStyle: { areaColor: 'rgba(10,20,50,0.6)', borderColor: 'rgba(0,212,255,0.12)', borderWidth: 1, shadowColor: 'rgba(0,180,255,0.06)', shadowBlur: 20 },
-      emphasis: { disabled: true },
-      regions: [{ name: '南海诸岛', itemStyle: { areaColor: 'rgba(10,20,50,0.6)', borderColor: 'rgba(0,212,255,0.06)' } }],
+    // 使用高德地图作为底图
+    amap: {
+      apiKey: AMAP_KEY,
+      center: [104.5, 36],
+      zoom: 5,
+      roam: true,
+      mapStyle: AMAP_STYLE,
+      viewMode: '2D',
+      renderOnMoving: true,
     },
     series: [
       ...routeSeries,
       airportSeries,
       {
-        name: '紧急', type: 'effectScatter', coordinateSystem: 'geo', data: criticalPts,
+        name: '紧急', type: 'effectScatter', coordinateSystem: 'amap', data: criticalPts,
         symbolSize: 14, showEffectOn: 'render',
         rippleEffect: { brushType: 'stroke', scale: 4, period: 3 },
         itemStyle: { color: '#ef4444', shadowBlur: 16, shadowColor: '#ef4444' },
@@ -146,7 +153,7 @@ function buildOptions(): echarts.EChartsOption {
         zlevel: 4,
       },
       {
-        name: '预警', type: 'effectScatter', coordinateSystem: 'geo', data: warningPts,
+        name: '预警', type: 'effectScatter', coordinateSystem: 'amap', data: warningPts,
         symbolSize: 11, showEffectOn: 'render',
         rippleEffect: { brushType: 'stroke', scale: 3, period: 4 },
         itemStyle: { color: '#f59e0b', shadowBlur: 10, shadowColor: '#f59e0b' },
@@ -154,7 +161,7 @@ function buildOptions(): echarts.EChartsOption {
         zlevel: 3,
       },
       {
-        name: '信息', type: 'effectScatter', coordinateSystem: 'geo', data: infoPts,
+        name: '信息', type: 'effectScatter', coordinateSystem: 'amap', data: infoPts,
         symbolSize: 8, showEffectOn: 'render',
         rippleEffect: { brushType: 'stroke', scale: 2.5, period: 5 },
         itemStyle: { color: '#3b82f6', shadowBlur: 6, shadowColor: '#3b82f6' },
@@ -172,9 +179,20 @@ function render() {
 }
 
 onMounted(async () => {
-  if (!(echarts as any).getMap('china')) {
-    try { const geoJson = await import('@/assets/map/china.json'); echarts.registerMap('china', geoJson.default as any) } catch { /* fallback */ }
+  // 使用官方加载器加载高德地图API
+  try {
+    await AMapLoader.load({
+      key: AMAP_KEY,
+      version: '2.0',
+      plugins: ['AMap.Scale', 'AMap.ToolBar'],
+    })
+    console.log('[AlertMapView] 高德地图API加载成功')
+  } catch (err) {
+    console.error('[AlertMapView] 高德地图API加载失败:', err)
+    return
   }
+  
+  // API加载完成后渲染地图
   render()
 })
 

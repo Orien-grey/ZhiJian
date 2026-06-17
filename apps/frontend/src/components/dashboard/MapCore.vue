@@ -82,13 +82,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
+import 'echarts-extension-amap'  // 引入高德地图扩展（注册扩展）
+import AMapLoader from '@amap/amap-jsapi-loader'  // 使用官方加载器加载API
 import {
   MOCK_WAYPOINTS, MOCK_ROUTES, MOCK_POLYGON_ZONES, MOCK_CIRCLE_ZONES,
   MOCK_FIR_BOUNDARIES, MOCK_MAP_STATS, type PolygonZone,
 } from '@/views/dashboard/mock/mapData'
 import { WAYPOINT_DETAILS, ROUTE_DETAILS, AIRPORT_DETAILS, type WaypointDetail, type RouteDetail, type ZoneDetail, type AirportDetail } from '@/views/dashboard/mock/mapTooltip'
+import { AMAP_KEY, AMAP_STYLE } from '@/config/amap'
 import MapTooltip from './MapTooltip.vue'
 
 const props = withDefaults(defineProps<{
@@ -169,7 +172,7 @@ function render() {
   const series: any[] = [
     // FIR 边界
     ...MOCK_FIR_BOUNDARIES.map(fir => ({
-      type: 'lines', coordinateSystem: 'geo', polyline: true, silent: true, zlevel: 0,
+      type: 'lines', coordinateSystem: 'amap', polyline: true, silent: true, zlevel: 0,
       data: [{ coords: fir.coords }],
       lineStyle: { color: 'rgba(0,212,255,0.1)', width: 1, type: 'dashed' },
     })),
@@ -181,7 +184,7 @@ function render() {
         if (f && t) coords.push(...bezierCoords(f, t))
       }
       return coords.length > 0 ? {
-        type: 'lines', coordinateSystem: 'geo', polyline: true, zlevel: 1,
+        type: 'lines', coordinateSystem: 'amap', polyline: true, zlevel: 1,
         data: [{ coords, name: route.name }],
         lineStyle: { color: 'rgba(0,212,255,0.06)', width: 1 },
         emphasis: { lineStyle: { color: 'rgba(0,212,255,0.5)', width: 2.5 } },
@@ -190,33 +193,33 @@ function render() {
     }).filter(Boolean) : []),
     // 航路点（受过滤控制）
     ...(filters.waypoints ? [{
-      type: 'scatter', coordinateSystem: 'geo', zlevel: 3,
+      type: 'scatter', coordinateSystem: 'amap', zlevel: 3,
       data: MOCK_WAYPOINTS.map(w => ({ name: w.code, value: [w.lng, w.lat] })),
       symbolSize: 5, itemStyle: { color: '#fff', borderColor: 'rgba(0,180,220,0.58)', borderWidth: 1.5 },
       label: { show: true, position: 'right', color: '#94a3b8', fontSize: 9, fontFamily: 'monospace', distance: 4 },
     }] : []),
     // 圆形限制区（受限制区过滤，含同心圆雷达环）
     ...(filters.restricted ? MOCK_CIRCLE_ZONES.flatMap(z => [
-      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1,
+      { type:'lines' as const, coordinateSystem:'amap' as const, polyline:true, zlevel:1,
         data:[{ coords:circlePts(z.center, z.radius*1.5), name: z.name }],
         lineStyle:{ color:'rgba(56,189,248,0.05)', width:1, type:'dashed' } },
-      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:1,
+      { type:'lines' as const, coordinateSystem:'amap' as const, polyline:true, zlevel:1,
         data:[{ coords:circlePts(z.center, z.radius*0.6), name: z.name }],
         lineStyle:{ color:'rgba(56,189,248,0.1)', width:1 } },
-      { type:'lines' as const, coordinateSystem:'geo' as const, polyline:true, zlevel:2,
+      { type:'lines' as const, coordinateSystem:'amap' as const, polyline:true, zlevel:2,
         data:[{ coords:circlePts(z.center, z.radius), name: z.name }],
         lineStyle:{ color:'rgba(56,189,248,0.48)', width:2 } },
-      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:1,
+      { type:'scatter' as const, coordinateSystem:'amap' as const, zlevel:1,
         data:[[z.center[0], z.center[1], 1] as [number,number,number]],
         symbolSize:40, itemStyle:{ color:'rgba(56,189,248,0.05)' } },
-      { type:'scatter' as const, coordinateSystem:'geo' as const, zlevel:2,
+      { type:'scatter' as const, coordinateSystem:'amap' as const, zlevel:2,
         data:[{ name:z.name, value:[z.center[0], z.center[1], 1] as [number,number,number] }],
         symbolSize:8, itemStyle:{ color:'rgba(56,189,248,0.6)', borderColor:'#fff', borderWidth:1 },
         label:{ show:true, formatter:z.name, color:'#7dd3fc', fontSize:9, position:'top', distance:8 } },
     ]) : []),
     // 机场标记（受运行机场/所有机场过滤）
     ...((filters.airports || filters.allAirports) ? [{
-      type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 4,
+      type: 'scatter' as const, coordinateSystem: 'amap' as const, zlevel: 4,
       data: AIRPORT_MARKERS.map(a => ({ name: a.icao, value: [a.lng, a.lat] })),
       symbolSize: 8, itemStyle: { color: '#00d4ff', borderColor: '#fff', borderWidth: 2, shadowBlur: 6, shadowColor: 'rgba(0,212,255,0.5)' },
       label: { show: true, position: 'right', color: '#e2e8f0', fontSize: 10, fontFamily: 'monospace', distance: 6 },
@@ -229,19 +232,19 @@ function render() {
       return [
         // 半透明填充多边形（用顶点散点模拟面）
         ...z.coords.map(c => ({
-          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1,
+          type: 'scatter' as const, coordinateSystem: 'amap' as const, zlevel: 1,
           data: [{ name: z.name, value: [...c, 1] as [number, number, number] }],
           symbolSize: 6, itemStyle: { color: 'rgba(239,68,68,0.12)' },
         })),
         // 中心大面积光晕
         {
-          type: 'scatter' as const, coordinateSystem: 'geo' as const, zlevel: 1,
+          type: 'scatter' as const, coordinateSystem: 'amap' as const, zlevel: 1,
           data: [{ name: z.name, value: [cx, cy, 1] as [number, number, number] }],
           symbolSize: 50, itemStyle: { color: 'rgba(239,68,68,0.1)' },
         },
         // 红色边框
         {
-          type: 'lines' as const, coordinateSystem: 'geo' as const, polyline: true, zlevel: 2,
+          type: 'lines' as const, coordinateSystem: 'amap' as const, polyline: true, zlevel: 2,
           data: [{ coords: z.coords, name: z.name }],
           lineStyle: { color: 'rgba(239,68,68,0.5)', width: 2, type: 'dashed' },
           label: { show: true, formatter: z.name, color: '#fca5a5', fontSize: 10 },
@@ -254,28 +257,43 @@ function render() {
       const cx = z.coords.reduce((s,c) => s + c[0], 0) / z.coords.length
       const cy = z.coords.reduce((s,c) => s + c[1], 0) / z.coords.length
       const wps = [...new Set(z.notams.flatMap(n => n.affectedRoutes.flatMap(r => { const rt = MOCK_ROUTES.find(rt => rt.name === r); return rt ? rt.waypoints : [] })))]
-      return wps.map(wpCode => { const wp = findWaypoint(wpCode); if (!wp) return null; return { type: "lines", coordinateSystem:"geo", zlevel:1, silent:true, data:[{ coords:[[cx,cy], wp] }], lineStyle:{ color:"rgba(239,68,68,0.2)", width:0.5, type:"dotted" } } }).filter(Boolean)
+      return wps.map(wpCode => { const wp = findWaypoint(wpCode); if (!wp) return null; return { type: "lines", coordinateSystem:"amap", zlevel:1, silent:true, data:[{ coords:[[cx,cy], wp] }], lineStyle:{ color:"rgba(239,68,68,0.2)", width:0.5, type:"dotted" } } }).filter(Boolean)
     }) : []),
   ]
 
   instance.setOption({
     backgroundColor: 'transparent',
-    geo: {
-      map: 'china', roam: true, zoom: 1.2, center: [105, 34], aspectScale: 0.85,
-      tooltip: { show: true, trigger: 'item' },
-      itemStyle: { areaColor: 'rgba(8,14,32,0.8)', borderColor: 'rgba(0,212,255,0.12)', borderWidth: 1 },
-      emphasis: { disabled: true },
-      regions: [{ name: '南海诸岛', itemStyle: { areaColor: 'rgba(8,14,32,0.8)', borderColor: 'rgba(0,212,255,0.06)' } }],
+    // 使用高德地图作为底图
+    amap: {
+      apiKey: AMAP_KEY,
+      center: [105, 34],
+      zoom: 5,
+      roam: true,
+      mapStyle: AMAP_STYLE,
+      viewMode: '2D',
+      renderOnMoving: true,
     },
     series,
   }, true)
 }
 
 onMounted(async () => {
-  if (!(echarts as any).getMap('china')) {
-    try { const g = await import('@/assets/map/china.json'); echarts.registerMap('china', g.default as any) } catch { /* */ }
+  // 使用官方加载器加载高德地图API
+  try {
+    await AMapLoader.load({
+      key: AMAP_KEY,
+      version: '2.0',
+      plugins: ['AMap.Scale', 'AMap.ToolBar'],
+    })
+    console.log('[MapCore] 高德地图API加载成功')
+  } catch (err) {
+    console.error('[MapCore] 高德地图API加载失败:', err)
+    return
   }
+  
+  // API加载完成后渲染地图
   render()
+  
   instance?.on('click', (p: any) => {
     if (p.seriesType === 'lines' && p.data?.name) {
       const z = MOCK_POLYGON_ZONES.find(z => z.name === p.data.name)
